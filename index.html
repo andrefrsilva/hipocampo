@@ -323,12 +323,11 @@ var nodeIdMapping = {};
 nodesJSON.forEach(function(node, index) {
     var nodeObj = {};
     var tipo = node['Tipo'] ? node['Tipo'].trim().toLowerCase() : '';
-    var nodeId = node['Nome'];
-
+    var nodeId = node['Nome'].trim(); // Trim whitespace
 
     usedNodeIds.add(nodeId);
 
-nodeIdMapping[nodeId] = nodeId;
+    nodeIdMapping[nodeId] = nodeId;
 
     nodeObj.id = nodeId;
     nodeObj.Tipo = tipo;
@@ -516,16 +515,16 @@ edgesJSON.forEach(function(edge, index) {
        // **Preencher os menus dropdown**
 dropdownNodes.forEach(function(node) {
     var optionStart = document.createElement('option');
-    optionStart.value = node.id;
-    // Remove '/n' from the label for dropdowns
-    optionStart.text = node.label.replace(/\/n/g, '');
+    optionStart.value = node.id.trim(); // Trim whitespace
+    optionStart.text = node.label.replace(/\/n/g, '').trim(); // Trim whitespace
     startSelect.appendChild(optionStart);
 
     var optionEnd = document.createElement('option');
-    optionEnd.value = node.id;
-    optionEnd.text = node.label.replace(/\/n/g, '');
+    optionEnd.value = node.id.trim(); // Trim whitespace
+    optionEnd.text = node.label.replace(/\/n/g, '').trim(); // Trim whitespace
     endSelect.appendChild(optionEnd);
 });
+
 
 
 // Limitar a largura das opções do dropdown
@@ -543,8 +542,13 @@ var fromParam = urlParams.get('from');
 var toParam = urlParams.get('to');
 
 console.log('window.location.search:', window.location.search);
-console.log('fromParam:', fromParam);
-console.log('toParam:', toParam);
+// In initializeNetwork, after building adjacencyList
+console.log('Adjacency List Keys:', Object.keys(adjacencyList));
+// In calculateShortestRoute
+console.log('fromId:', fromId);
+console.log('toId:', toId);
+console.log('adjacencyList[fromId]:', adjacencyList[fromId]);
+      
       
 if (fromParam && toParam) {
     // Check if fromParam and toParam are valid options
