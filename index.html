@@ -208,7 +208,7 @@ a:hover {
         <!-- Title -->
         <div class="row">
             <div class="col-12">
-                <p class="mb-2 text-center" style="font-size: 24px;">HIPOCAMPO v2</p>
+                <p class="mb-2 text-center" style="font-size: 24px;">HIPOCAMPO v3</p>
               
             </div>
         </div>
@@ -542,10 +542,9 @@ var urlParams = new URLSearchParams(window.location.search);
 var fromParam = urlParams.get('from');
 var toParam = urlParams.get('to');
 
-// Decode and standardize parameters
-fromParam = fromParam ? standardizeId(decodeURIComponent(fromParam)) : '';
-toParam = toParam ? standardizeId(decodeURIComponent(toParam)) : '';
-
+// Standardize parameters (no need to decode again)
+fromParam = fromParam ? standardizeId(fromParam) : '';
+toParam = toParam ? standardizeId(toParam) : '';
       
 if (fromParam && toParam) {
     // Check if fromParam and toParam are valid options
@@ -560,7 +559,9 @@ if (fromParam && toParam) {
         // Call calculateShortestRoute() automatically
         calculateShortestRoute();
     } else {
-        alert('Locais não encontrados. Escolha de novo.');
+        //alert('Locais não encontrados. Escolha de novo.');
+      // Preselect "Entrada da FMUL" in the start dropdown
+    startSelect.value = standardizeId('Entrada da FMUL');
     }
 }
       
@@ -648,14 +649,14 @@ edgesArray.forEach(function(edge) {
         });
     }
 
-    function calculateShortestRoute() {
-var fromId = standardizeId(startSelect.value);
-    var toId = standardizeId(endSelect.value);
+function calculateShortestRoute() {
+    var fromId = startSelect.value; // Already standardized
+    var toId = endSelect.value;     // Already standardized
 
-    console.log('fromId:', fromId);
-    console.log('toId:', toId);
-    console.log('adjacencyList[fromId]:', adjacencyList[fromId]);
-    console.log('adjacencyList[toId]:', adjacencyList[toId]);
+console.log('fromId:', fromId);
+console.log('toId:', toId);
+console.log('adjacencyList[fromId]:', adjacencyList[fromId]);
+console.log('adjacencyList[toId]:', adjacencyList[toId]);
 
       if (!adjacencyList[fromId]) {
         alert('Ponto de partida não encontrado.');
@@ -808,10 +809,10 @@ function copyCurrentRoute() {
     var fromValue = startSelect.value;
     var toValue = endSelect.value;
 
-    // Build the URL with encoded parameters
+    // Build the URL with parameters (URLSearchParams will handle encoding)
     var url = new URL(window.location.href.split('?')[0]);
-    url.searchParams.set('from', encodeURIComponent(fromValue));
-    url.searchParams.set('to', encodeURIComponent(toValue));
+    url.searchParams.set('from', fromValue);
+    url.searchParams.set('to', toValue);
 
     // Copy to clipboard
     navigator.clipboard.writeText(url.toString())
@@ -822,6 +823,7 @@ function copyCurrentRoute() {
             console.error('Erro ao copiar para o clipboard:', err);
         });
 }
+
 
 
 
