@@ -235,7 +235,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.1</a>
               </center>
             </div>
         </div>
@@ -674,78 +674,33 @@ edgesArray.forEach(function(edge) {
         });
     }
 
-function calculateShortestRoute() {
-  showLoading();
-  
-  // Allow the loading overlay to render
-    setTimeout(function() {
-         var startTime = performance.now();
-    console.log('calculateShortestRoute called at:', startTime);
-  if (performance.memory) {
-        console.log('Memory before BFS - Used JS Heap Size:', (performance.memory.usedJSHeapSize / 1048576).toFixed(2), 'MB');
-    }
-  console.time('calculateShortestRoute Execution Time');
-    
-  var fromId = startSelect.value;
+   function calculateShortestRoute() {
+    showLoading();
+
+    var fromId = startSelect.value;
     var toId = endSelect.value;
 
-console.log('fromId:', fromId);
-console.log('toId:', toId);
-console.log('adjacencyList[fromId]:', adjacencyList[fromId]);
-console.log('adjacencyList[toId]:', adjacencyList[toId]);
+    var worker = new Worker('shortestRouteWorker.js');
 
-       if (!adjacencyList[fromId]) {
-        alert('Ponto de partida não encontrado.');
-        return;
-    }
-    if (!adjacencyList[toId]) {
-        alert('Ponto de chegada não encontrado.');
-        return;
-    }
-      
-        // Variáveis BFS
-        var queue = [];
-        var visited = {};
-        var predecessor = {};
+    worker.postMessage({
+        fromId: fromId,
+        toId: toId,
+        adjacencyList: adjacencyList
+    });
 
-        queue.push(fromId);
-        visited[fromId] = true;
+    worker.onmessage = function(e) {
+        hideLoading();
 
-        // BFS
-        while (queue.length > 0) {
-            var currentNode = queue.shift();
-
-            if (currentNode === toId) {
-                break;
-            }
-
-            adjacencyList[currentNode]?.forEach(function(neighborObj) {
-                var neighbor = neighborObj.node;
-                if (!visited[neighbor]) {
-                    visited[neighbor] = true;
-                    predecessor[neighbor] = currentNode;
-                    queue.push(neighbor);
-                }
-            });
-        }
-
-        // Reconstruir o caminho
-        var path = [];
-        var current = toId;
-
-        if (!visited[toId]) {
-            alert('Nenhum caminho encontrado entre os pontos selecionados.');
+        if (e.data.error) {
+            alert(e.data.error);
             return;
         }
 
-        while (current !== undefined) {
-            path.unshift(current);
-            current = predecessor[current];
-        }
+        var path = e.data.path;
 
         resetEdgeColors();
 
-        // Destacar o caminho
+        // Highlight the path
         for (var i = 0; i < path.length - 1; i++) {
             var fromNode = path[i];
             var toNode = path[i + 1];
@@ -762,127 +717,68 @@ console.log('adjacencyList[toId]:', adjacencyList[toId]);
             }
         }
 
-        // Focar no caminho
+        // Focus on the path
         network.fit({
             nodes: path,
             animation: true,
         });
-  
-  if (performance.memory) {
-        console.log('Memory after BFS - Used JS Heap Size:', (performance.memory.usedJSHeapSize / 1048576).toFixed(2), 'MB');
-    }
-  var endTime = performance.now();
-    console.log('Total time taken:', (endTime - startTime).toFixed(2), 'milliseconds');
 
-    if (performance.memory) {
-        console.log('Memory at end - Used JS Heap Size:', (performance.memory.usedJSHeapSize / 1048576).toFixed(2), 'MB');
-    }
-  
-  console.timeEnd('calculateShortestRoute Execution Time');
+        worker.terminate();
+    };
+}
 
-        hideLoading(); // Hide loading animation
-    }, 100); // Short delay to ensure the loading overlay is displayed
-  
-  
-  
-  
-  
-  
-  
-  
- 
-  
-    }
-
-  function calculateTouristRoute() {
+   function calculateTouristRoute() {
     showLoading();
-    
-    // Allow the loading overlay to render
-    setTimeout(function() {
-        console.time('calculateTouristRoute Execution Time');
+
     var fromId = startSelect.value;
     var toId = endSelect.value;
-    var maxDepth = 20; // Limit the maximum depth to prevent crashing
-    var found = false;
-    var bestPath = [];
-    var visitedEdges = {};
 
-function dfs(currentNode, targetNode, depth, path) {
-    if (depth > maxDepth) return;
-    if (currentNode === targetNode) {
-        if (path.length > bestPath.length) {
-            bestPath = path.slice();
-            found = true;
-        }
-        return;
-    }
+    var worker = new Worker('touristRouteWorker.js');
 
-    // Check if adjacencyList[currentNode] exists
-    if (!adjacencyList[currentNode]) {
-        console.error('No adjacency list for node:', currentNode);
-        return;
-    }
-
-    adjacencyList[currentNode].forEach(function(neighborObj) {
-        var neighbor = neighborObj.node;
-        var edgeId = neighborObj.edgeId;
-
-        if (!visitedEdges[edgeId]) {
-            visitedEdges[edgeId] = true;
-            path.push({ node: neighbor, edgeId: edgeId });
-            dfs(neighbor, targetNode, depth + 1, path);
-            path.pop();
-            visitedEdges[edgeId] = false;
-        }
+    worker.postMessage({
+        fromId: fromId,
+        toId: toId,
+        adjacencyList: adjacencyList
     });
+
+    worker.onmessage = function(e) {
+        hideLoading();
+
+        if (e.data.error) {
+            alert(e.data.error);
+            return;
+        }
+
+        var bestPath = e.data.bestPath;
+
+        resetEdgeColors();
+
+        // Highlight the path
+        for (var i = 1; i < bestPath.length; i++) {
+            var edgeId = bestPath[i].edgeId;
+            if (edgeId !== undefined) {
+                data.edges.update({ id: edgeId, color: { color: '#FF0000' }, width: 8 });
+            }
+        }
+
+        // Focus on the path
+        var nodeIds = bestPath.map(function(item) { return item.node; });
+        network.fit({
+            nodes: nodeIds,
+            animation: true,
+        });
+
+        // Trigger confetti animation
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+
+        worker.terminate();
+    };
 }
 
-
-    dfs(fromId, toId, 0, [{ node: fromId, edgeId: null }]);
-
-    if (!found) {
-        alert('Nenhum caminho encontrado entre os pontos selecionados.');
-        return;
-    }
-
-    resetEdgeColors();
-
-    // Highlight the path
-    for (var i = 1; i < bestPath.length; i++) {
-        var edgeId = bestPath[i].edgeId;
-        if (edgeId !== undefined) {
-            data.edges.update({ id: edgeId, color: { color: '#FF0000' }, width: 8 });
-        }
-    }
-
-    // Focus on the path
-    var nodeIds = bestPath.map(function(item) { return item.node; });
-    network.fit({
-        nodes: nodeIds,
-        animation: true,
-    });
-
-    // Trigger confetti animation
-    confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 }
-    });
-    
-    console.timeEnd('calculateTouristRoute Execution Time');
-
-        // Hide loading animation after confetti animation
-        setTimeout(function() {
-            hideLoading(); // Hide loading animation
-        }, 10); // Adjust the delay based on the confetti duration
-    }, 100); // Short delay to ensure the loading overlay is displayed
-    
-    
-    
-    
-    
-    
-}
 
 function copyCurrentRoute() {
             var fromId = startSelect.value; // Node ID
