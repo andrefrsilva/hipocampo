@@ -208,7 +208,7 @@ a:hover {
         <!-- Title -->
         <div class="row">
             <div class="col-12">
-                <p class="mb-2 text-center" style="font-size: 24px;">HIPOCAMPO</p>
+                <p class="mb-2 text-center" style="font-size: 24px;">HIPOCAMPO v2</p>
               
             </div>
         </div>
@@ -268,6 +268,10 @@ Pressione o local para ver a foto.<br>
     // Definir o container como visível
     document.getElementById('fullscreenContainer').style.display = 'block';
 
+  function standardizeId(id) {
+            return id.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+  
    // Declare global variables
 var data, network, adjacencyList, startSelect, endSelect, imageMap;
 
@@ -323,13 +327,9 @@ var nodeIdMapping = {};
 nodesJSON.forEach(function(node, index) {
     var nodeObj = {};
     var tipo = node['Tipo'] ? node['Tipo'].trim().toLowerCase() : '';
-    var nodeId = node['Nome'];
+    var nodeId = standardizeId(node['Nome']);
 
-
-    usedNodeIds.add(nodeId);
-
-nodeIdMapping[nodeId] = nodeId;
-
+    nodeIdMapping[nodeId] = nodeId;
     nodeObj.id = nodeId;
     nodeObj.Tipo = tipo;
 
@@ -362,8 +362,8 @@ edgesJSON.forEach(function(edge, index) {
     var edgeObj = {};
     edgeObj.id = index.toString();
 
-    var edgeFromName = edge['A'].trim();
-    var edgeToName = edge['B'].trim();
+    var edgeFromName = standardizeId(edge['A']);
+    var edgeToName = standardizeId(edge['B']);
 
     edgeObj.from = nodeIdMapping[edgeFromName];
     edgeObj.to = nodeIdMapping[edgeToName];
@@ -395,7 +395,7 @@ edgesJSON.forEach(function(edge, index) {
                 id: 'dash_piso1_A',
                 label: '',
                 x: 500,
-                y: 990,
+                y: 900,
                 shape: 'text',
                 fixed: true,
               Tipo: 'aux'
@@ -404,7 +404,7 @@ edgesJSON.forEach(function(edge, index) {
                 id: 'dash_piso1_B',
                 label: '',
                 x: 7000,
-                y: 990,
+                y: 900,
                 shape: 'text',
                 fixed: true,
               Tipo: 'aux'
@@ -422,7 +422,7 @@ edgesJSON.forEach(function(edge, index) {
                 id: 'dash_piso2_A',
                 label: '',
                 x: 500,
-                y: -900,
+                y: -1080,
                 shape: 'text',
                 fixed: true,
               Tipo: 'aux'
@@ -431,7 +431,7 @@ edgesJSON.forEach(function(edge, index) {
                 id: 'dash_piso2_B',
                 label: '',
                 x: 7000,
-                y: -900,
+                y: -1080,
                 shape: 'text',
                 fixed: true,
               Tipo: 'aux'
@@ -516,16 +516,16 @@ edgesJSON.forEach(function(edge, index) {
        // **Preencher os menus dropdown**
 dropdownNodes.forEach(function(node) {
     var optionStart = document.createElement('option');
-    optionStart.value = node.id;
-    // Remove '/n' from the label for dropdowns
-    optionStart.text = node.label.replace(/\/n/g, '');
+    optionStart.value = node.id; // Already standardized
+    optionStart.text = node.label.replace(/\/n/g, '').trim();
     startSelect.appendChild(optionStart);
 
     var optionEnd = document.createElement('option');
-    optionEnd.value = node.id;
-    optionEnd.text = node.label.replace(/\/n/g, '');
+    optionEnd.value = node.id; // Already standardized
+    optionEnd.text = node.label.replace(/\/n/g, '').trim();
     endSelect.appendChild(optionEnd);
 });
+
 
 
 // Limitar a largura das opções do dropdown
@@ -537,10 +537,14 @@ selectElements.forEach(function(select) {
 // Preselect "Entrada da FMUL" in the start dropdown
 startSelect.value = 'Entrada da FMUL';
 
-      // Parse URL parameters
+// Parse URL parameters
 var urlParams = new URLSearchParams(window.location.search);
 var fromParam = urlParams.get('from');
 var toParam = urlParams.get('to');
+
+// Decode and standardize parameters
+fromParam = fromParam ? standardizeId(decodeURIComponent(fromParam)) : '';
+toParam = toParam ? standardizeId(decodeURIComponent(toParam)) : '';
 
       
 if (fromParam && toParam) {
@@ -645,9 +649,23 @@ edgesArray.forEach(function(edge) {
     }
 
     function calculateShortestRoute() {
-        var fromId = startSelect.value;
-        var toId = endSelect.value;
+var fromId = standardizeId(startSelect.value);
+    var toId = standardizeId(endSelect.value);
 
+    console.log('fromId:', fromId);
+    console.log('toId:', toId);
+    console.log('adjacencyList[fromId]:', adjacencyList[fromId]);
+    console.log('adjacencyList[toId]:', adjacencyList[toId]);
+
+      if (!adjacencyList[fromId]) {
+        alert('Ponto de partida não encontrado.');
+        return;
+    }
+    if (!adjacencyList[toId]) {
+        alert('Ponto de chegada não encontrado.');
+        return;
+    }
+      
         // Variáveis BFS
         var queue = [];
         var visited = {};
@@ -786,14 +804,14 @@ function dfs(currentNode, targetNode, depth, path) {
 }
 
   
-  function copyCurrentRoute() {
+function copyCurrentRoute() {
     var fromValue = startSelect.value;
     var toValue = endSelect.value;
 
-    // Build the URL with from and to parameters
+    // Build the URL with encoded parameters
     var url = new URL(window.location.href.split('?')[0]);
-    url.searchParams.set('from', fromValue);
-    url.searchParams.set('to', toValue);
+    url.searchParams.set('from', encodeURIComponent(fromValue));
+    url.searchParams.set('to', encodeURIComponent(toValue));
 
     // Copy to clipboard
     navigator.clipboard.writeText(url.toString())
@@ -804,6 +822,7 @@ function dfs(currentNode, targetNode, depth, path) {
             console.error('Erro ao copiar para o clipboard:', err);
         });
 }
+
 
 
 </script>
