@@ -208,7 +208,7 @@ a:hover {
         <!-- Title -->
         <div class="row">
             <div class="col-12">
-                <p class="mb-2 text-center" style="font-size: 24px;">HIPOCAMPO v6</p>
+                <p class="mb-2 text-center" style="font-size: 24px;">HIPOCAMPO v7</p>
               
             </div>
         </div>
@@ -376,9 +376,6 @@ Pressione o local para ver a foto.<br>
                     }
                 });
           
-                console.log('nodeIdMapping:', nodeIdMapping);
-console.log('adjacencyList:', adjacencyList);
-
             // **Adicionar nós e arestas extras hardcoded**
             // Nodes extras
             nodesArray.push({
@@ -549,6 +546,26 @@ selectElements.forEach(function(select) {
                 }
             }
 
+      // Construir a lista de adjacência para BFS e DFS
+        adjacencyList = {};
+
+        nodesArray.forEach(function(node) {
+            adjacencyList[node.id] = [];
+        });
+
+edgesArray.forEach(function(edge) {
+    if (!adjacencyList[edge.from]) {
+        console.warn('Edge from-node not found in adjacencyList:', edge.from);
+        return; // Skip this edge
+    }
+    if (!adjacencyList[edge.to]) {
+        console.warn('Edge to-node not found in adjacencyList:', edge.to);
+        return; // Skip this edge
+    }
+    adjacencyList[edge.from].push({ node: edge.to, edgeId: edge.id });
+    adjacencyList[edge.to].push({ node: edge.from, edgeId: edge.id });
+});
+      
             if (fromFound && toFound) {
                 calculateShortestRoute();
             }
@@ -583,26 +600,6 @@ selectElements.forEach(function(select) {
                 document.getElementById('modalOverlay').style.display = 'none';
             }
         });
-
-        // Construir a lista de adjacência para BFS e DFS
-        adjacencyList = {};
-
-        nodesArray.forEach(function(node) {
-            adjacencyList[node.id] = [];
-        });
-
-edgesArray.forEach(function(edge) {
-    if (!adjacencyList[edge.from]) {
-        console.warn('Edge from-node not found in adjacencyList:', edge.from);
-        return; // Skip this edge
-    }
-    if (!adjacencyList[edge.to]) {
-        console.warn('Edge to-node not found in adjacencyList:', edge.to);
-        return; // Skip this edge
-    }
-    adjacencyList[edge.from].push({ node: edge.to, edgeId: edge.id });
-    adjacencyList[edge.to].push({ node: edge.from, edgeId: edge.id });
-});
       
         // Extrair pisos únicos para desenhar labels
         var floors = [...new Set(nodesArray.map(node => node.floor))];
