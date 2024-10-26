@@ -1,10 +1,10 @@
 <head>
     <meta charset="UTF-8">
     <title>HIPOCAMPO</title>
-    <link rel="icon" type="image/png" href="https://i.postimg.cc/0yLDmmxY/images.png">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/cL3HJPY6/android-chrome-192x192.png">
     <meta property="og:title" content="Hipocampo">
     <meta property="og:description" content="Encontre o caminho sem chatear o segurança.">
-    <meta property="og:image" content="https://i.postimg.cc/0yLDmmxY/images.png">
+    <meta property="og:image" content="https://i.postimg.cc/cL3HJPY6/android-chrome-192x192.png">
     <meta property="og:url" content="https://hipocampo.pt">
     <meta name="twitter:card" content="summary_large_image">
     <!-- Meta Viewport para Design Responsivo -->
@@ -199,6 +199,32 @@ a:hover {
                 padding: 6px 10px;
             }
         }
+      
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 3000;
+}
+
+.cat-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cat-gif {
+    width: 250px;
+    height: auto;
+}
+      
     </style>
 </head>
 <body>
@@ -208,7 +234,7 @@ a:hover {
         <!-- Title -->
         <div class="row">
             <div class="col-12">
-                <p class="mb-2 text-center" style="font-size: 24px;">HIPOCAMPO v7</p>
+                <p class="mb-2 text-center" style="font-size: 24px;">HIPOCAMPO</p>
               
             </div>
         </div>
@@ -227,7 +253,7 @@ a:hover {
                     <div class="d-flex align-items-center path-controls">
                         <span class="mr-2">Pelo Caminho:</span>
                         <button onclick="calculateShortestRoute()" class="btn btn-yellow mr-2">Mais Curto</button>
-                        <button onclick="calculateTouristRoute()" class="btn btn-yellow">Turístico</button>
+                      <button onclick="calculateTouristRoute()" class="btn btn-yellow">Turístico</button>
                     </div>
                 </div>
             </div>
@@ -245,7 +271,7 @@ a:hover {
 <div id="watermark">
   <center>
 Pressione o local para ver a foto.<br>
-    © <a href="https://www.linkedin.com/in/andrefrsilva/" target="_blank">André</a>, with ❤️
+    © 2024 <a href="https://www.linkedin.com/in/andrefrsilva/" target="_blank">André</a>, with ❤️
     </center>
 </div>
 
@@ -257,6 +283,13 @@ Pressione o local para ver a foto.<br>
     </div>
 </div>
 
+  <!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="cat-container">
+        <img src="https://i.postimg.cc/MH0mWkv2/ezgif-com-animated-gif-maker.gif" alt="Dancing Cat" class="cat-gif">
+    </div>
+</div>
+  
 <!-- Incluir dependências JS do Bootstrap -->
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
 <!-- Incluir Popper.js para tooltips do Bootstrap (se necessário) -->
@@ -265,6 +298,9 @@ Pressione o local para ver a foto.<br>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
  <script type="text/javascript">
+   // At the very top
+console.time('Total Load Time');
+   
         var data, network, adjacencyList, startSelect, endSelect, imageMap, nodeIdMapping, nodeIdToNameMapping;
 
         function standardizeId(id) {
@@ -275,6 +311,7 @@ Pressione o local para ver a foto.<br>
         loadDataAndInitialize();
 
         async function loadDataAndInitialize() {
+          
             nodeIdMapping = {};
             nodeIdToNameMapping = {};
             var url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrXyiS_PPqhwMxuHr3hE7RTSzi458AQjOrbdcZoPHOvWqYdDhxCXDUo585tZhkSpD297JY-4vTbART/pub?output=xlsx&_=' + new Date().getTime();
@@ -439,7 +476,8 @@ Pressione o local para ver a foto.<br>
     }
 
     function initializeNetwork(nodesArray, edgesArray) {
-            var container = document.getElementById('mynetwork');
+      console.time('initializeNetwork Execution Time');     
+      var container = document.getElementById('mynetwork');
 
             data = {
                 nodes: new vis.DataSet(nodesArray),
@@ -625,6 +663,8 @@ edgesArray.forEach(function(edge) {
             });
             ctx.restore();
         });
+      
+      console.timeEnd('initializeNetwork Execution Time');
     }
 
     function resetEdgeColors() {
@@ -634,7 +674,18 @@ edgesArray.forEach(function(edge) {
     }
 
 function calculateShortestRoute() {
-    var fromId = startSelect.value;
+  showLoading();
+  
+  // Allow the loading overlay to render
+    setTimeout(function() {
+         var startTime = performance.now();
+    console.log('calculateShortestRoute called at:', startTime);
+  if (performance.memory) {
+        console.log('Memory before BFS - Used JS Heap Size:', (performance.memory.usedJSHeapSize / 1048576).toFixed(2), 'MB');
+    }
+  console.time('calculateShortestRoute Execution Time');
+    
+  var fromId = startSelect.value;
     var toId = endSelect.value;
 
 console.log('fromId:', fromId);
@@ -715,9 +766,39 @@ console.log('adjacencyList[toId]:', adjacencyList[toId]);
             nodes: path,
             animation: true,
         });
+  
+  if (performance.memory) {
+        console.log('Memory after BFS - Used JS Heap Size:', (performance.memory.usedJSHeapSize / 1048576).toFixed(2), 'MB');
+    }
+  var endTime = performance.now();
+    console.log('Total time taken:', (endTime - startTime).toFixed(2), 'milliseconds');
+
+    if (performance.memory) {
+        console.log('Memory at end - Used JS Heap Size:', (performance.memory.usedJSHeapSize / 1048576).toFixed(2), 'MB');
+    }
+  
+  console.timeEnd('calculateShortestRoute Execution Time');
+
+        hideLoading(); // Hide loading animation
+    }, 100); // Short delay to ensure the loading overlay is displayed
+  
+  
+  
+  
+  
+  
+  
+  
+ 
+  
     }
 
   function calculateTouristRoute() {
+    showLoading();
+    
+    // Allow the loading overlay to render
+    setTimeout(function() {
+        console.time('calculateTouristRoute Execution Time');
     var fromId = startSelect.value;
     var toId = endSelect.value;
     var maxDepth = 20; // Limit the maximum depth to prevent crashing
@@ -786,6 +867,20 @@ function dfs(currentNode, targetNode, depth, path) {
         spread: 70,
         origin: { y: 0.6 }
     });
+    
+    console.timeEnd('calculateTouristRoute Execution Time');
+
+        // Hide loading animation after confetti animation
+        setTimeout(function() {
+            hideLoading(); // Hide loading animation
+        }, 10); // Adjust the delay based on the confetti duration
+    }, 100); // Short delay to ensure the loading overlay is displayed
+    
+    
+    
+    
+    
+    
 }
 
 function copyCurrentRoute() {
@@ -810,6 +905,16 @@ function copyCurrentRoute() {
                     console.error('Erro ao copiar para o clipboard:', err);
                 });
         }
+   
+function showLoading() {
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    loadingOverlay.style.display = "flex";
+}
+
+function hideLoading() {
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    loadingOverlay.style.display = "none";
+}
 
 </script>
 
