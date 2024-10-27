@@ -16,7 +16,9 @@
     <!-- Incluir SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-  <script src="https://github.com/lemire/FastPriorityQueue.js/raw/refs/heads/master/FastPriorityQueue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fastpriorityqueue@0.6.3/FastPriorityQueue.min.js"></script>
+
+  </script>
 
     <style>
       a {
@@ -237,7 +239,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.4</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.6</a>
               </center>
             </div>
         </div>
@@ -594,7 +596,11 @@ selectElements.forEach(function(select) {
             adjacencyList[node.id] = [];
         });
 
-edgesArray.forEach(function(edge) {
+edgesArray.forEach(function(edge, index) {
+    var edgeObj = {};
+    edgeObj.id = index.toString();
+   edgeObj.weight = 1; // Initialize all edge weights to 1
+  
     if (!adjacencyList[edge.from]) {
         console.warn('Edge from-node not found in adjacencyList:', edge.from);
         return; // Skip this edge
@@ -670,6 +676,58 @@ edgesArray.forEach(function(edge) {
       console.timeEnd('initializeNetwork Execution Time');
     }
 
+   
+   function dijkstra(startNodeId, goalNodeId, edgesData) {
+    var distances = {};
+    var previous = {};
+    var queue = new FastPriorityQueue((a, b) => a.distance < b.distance);
+
+    // Initialize distances
+    data.nodes.forEach(function(node) {
+        distances[node.id] = Infinity;
+    });
+    distances[startNodeId] = 0;
+
+    queue.add({ id: startNodeId, distance: 0 });
+
+    while (!queue.isEmpty()) {
+        var current = queue.poll();
+        var currentNodeId = current.id;
+
+        if (currentNodeId === goalNodeId) {
+            // Reconstruct path
+            var path = [];
+            var node = goalNodeId;
+
+            while (node !== undefined) {
+                path.unshift(node);
+                node = previous[node];
+            }
+            return path;
+        }
+
+        var neighbors = adjacencyList[currentNodeId];
+        if (neighbors) {
+            for (var neighborObj of neighbors) {
+                var neighborId = neighborObj.node;
+                var edgeId = neighborObj.edgeId;
+                var edge = data.edges.get(edgeId);
+                var alt = distances[currentNodeId] + edge.weight;
+
+                if (alt < distances[neighborId]) {
+                    distances[neighborId] = alt;
+                    previous[neighborId] = currentNodeId;
+                    queue.add({ id: neighborId, distance: alt });
+                }
+            }
+        }
+    }
+
+    // No path found
+    return null;
+}
+
+   
     function resetEdgeColors() {
         data.edges.forEach(function(edge) {
             data.edges.update({ id: edge.id, color: { color: '#848484' }, width: 2 });
@@ -878,28 +936,29 @@ function reconstructPath(cameFrom, currentNodeId) {
     return totalPath;
 }
 
-   
-   function calculateTouristRoute() {
+function calculateTouristRoute() {
     showLoading();
 
     var fromId = startSelect.value;
     var toId = endSelect.value;
 
-     var worker = new Worker('touristRouteWorker.js');
+    var worker = new Worker('touristRouteWorker.js');
 
-worker.onerror = function(error) {
-    hideLoading();
-    console.error('Worker error:', error);
-    alert('An error occurred in the worker: ' + error.message);
-};
+    worker.onerror = function (error) {
+        hideLoading();
+        console.error('Worker error:', error);
+        alert('An error occurred in the worker: ' + error.message);
+    };
 
     worker.postMessage({
         fromId: fromId,
         toId: toId,
-        adjacencyList: adjacencyList
+        adjacencyList: adjacencyList,
+        maxAttempts: 1000, // Number of random walks to attempt
+        maxSteps: 50       // Maximum steps in each random walk
     });
 
-    worker.onmessage = function(e) {
+    worker.onmessage = function (e) {
         hideLoading();
 
         if (e.data.error) {
@@ -907,22 +966,30 @@ worker.onerror = function(error) {
             return;
         }
 
-        var bestPath = e.data.bestPath;
+        var path = e.data.path;
 
         resetEdgeColors();
 
         // Highlight the path
-        for (var i = 1; i < bestPath.length; i++) {
-            var edgeId = bestPath[i].edgeId;
+        for (var i = 0; i < path.length - 1; i++) {
+            var fromNode = path[i];
+            var toNode = path[i + 1];
+
+            var edgeId = data.edges.getIds({
+                filter: function (edge) {
+                    return (edge.from === fromNode && edge.to === toNode) ||
+                           (edge.from === toNode && edge.to === fromNode);
+                }
+            })[0];
+
             if (edgeId !== undefined) {
                 data.edges.update({ id: edgeId, color: { color: '#FF0000' }, width: 8 });
             }
         }
 
         // Focus on the path
-        var nodeIds = bestPath.map(function(item) { return item.node; });
         network.fit({
-            nodes: nodeIds,
+            nodes: path,
             animation: true,
         });
 
