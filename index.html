@@ -1,6 +1,6 @@
 <head>
     <meta charset="UTF-8">
-    <title>HIPOCAMPO v0.1</title>
+    <title>HIPOCAMPO</title>
     <link rel="icon" type="image/png" href="https://i.postimg.cc/cL3HJPY6/android-chrome-192x192.png">
     <meta property="og:title" content="Hipocampo">
     <meta property="og:description" content="Encontre o caminho sem chatear o segurança.">
@@ -16,6 +16,8 @@
     <!-- Incluir SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script src="https://github.com/lemire/FastPriorityQueue.js/raw/refs/heads/master/FastPriorityQueue.js"></script>
+
     <style>
       a {
     color: orange; /* Sets the color of hyperlinks to orange */
@@ -235,7 +237,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.1</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.2</a>
               </center>
             </div>
         </div>
@@ -674,29 +676,24 @@ edgesArray.forEach(function(edge) {
         });
     }
 
-   function calculateShortestRoute() {
-    showLoading();
+function calculateShortestRoute() {
+    showLoading(); // Show loading animation
 
     var fromId = startSelect.value;
     var toId = endSelect.value;
 
-    var worker = new Worker('shortestRouteWorker.js');
+    var startTime = performance.now();
 
-    worker.postMessage({
-        fromId: fromId,
-        toId: toId,
-        adjacencyList: adjacencyList
-    });
+    // Allow the UI to update
+    setTimeout(function() {
+        // Call the optimized BFS algorithm
+        var path = bfsShortestPath(fromId, toId);
 
-    worker.onmessage = function(e) {
-        hideLoading();
-
-        if (e.data.error) {
-            alert(e.data.error);
+        if (!path) {
+            alert('Nenhum caminho encontrado entre os pontos selecionados.');
+            hideLoading();
             return;
         }
-
-        var path = e.data.path;
 
         resetEdgeColors();
 
@@ -723,10 +720,150 @@ edgesArray.forEach(function(edge) {
             animation: true,
         });
 
-        worker.terminate();
-    };
+        hideLoading(); // Hide loading animation
+
+        var endTime = performance.now();
+        console.log('Total Route Calculation Time:', (endTime - startTime).toFixed(2), 'milliseconds');
+    }, 100); // Short delay to allow UI to update
 }
 
+   function bfsShortestPath(startNodeId, goalNodeId) {
+    var queue = [];
+    var visited = new Set();
+    var predecessor = {};
+
+    queue.push(startNodeId);
+    visited.add(startNodeId);
+
+    while (queue.length > 0) {
+        var currentNode = queue.shift();
+
+        if (currentNode === goalNodeId) {
+            // Reconstruct path
+            var path = [];
+            var node = goalNodeId;
+
+            while (node !== undefined) {
+                path.unshift(node);
+                node = predecessor[node];
+            }
+            return path;
+        }
+
+        var neighbors = adjacencyList[currentNode];
+        if (neighbors) {
+            for (var neighborObj of neighbors) {
+                var neighborId = neighborObj.node;
+
+                if (!visited.has(neighborId)) {
+                    visited.add(neighborId);
+                    predecessor[neighborId] = currentNode;
+                    queue.push(neighborId);
+                }
+            }
+        }
+    }
+
+    // No path found
+    return null;
+}
+
+   
+function aStarSearch(startNodeId, goalNodeId) {
+    // Open and closed sets
+    var openSet = new MinPriorityQueue({ priority: (node) => node.fScore });
+    var closedSet = new Set();
+
+    // Initialize scores
+    var gScore = {};
+    var fScore = {};
+
+    gScore[startNodeId] = 0;
+    fScore[startNodeId] = heuristicCostEstimate(startNodeId, goalNodeId);
+
+    openSet.enqueue({ id: startNodeId, fScore: fScore[startNodeId] });
+    var cameFrom = {};
+
+    while (!openSet.isEmpty()) {
+        var currentNode = openSet.dequeue().element;
+
+        if (currentNode.id === goalNodeId) {
+            // Reconstruct path
+            return reconstructPath(cameFrom, currentNode.id);
+        }
+
+        closedSet.add(currentNode.id);
+
+        var neighbors = adjacencyList[currentNode.id];
+        if (neighbors) {
+            for (var neighborObj of neighbors) {
+                var neighborId = neighborObj.node;
+
+                if (closedSet.has(neighborId)) continue;
+
+                var tentativeGScore = gScore[currentNode.id] + distanceBetween(currentNode.id, neighborId);
+
+                if (tentativeGScore < (gScore[neighborId] || Infinity)) {
+                    cameFrom[neighborId] = currentNode.id;
+                    gScore[neighborId] = tentativeGScore;
+                    fScore[neighborId] = tentativeGScore + heuristicCostEstimate(neighborId, goalNodeId);
+
+                    openSet.enqueue({ id: neighborId, fScore: fScore[neighborId] });
+                }
+            }
+        }
+    }
+
+    // No path found
+    return null;
+}
+
+   class MinPriorityQueue {
+    constructor({ priority }) {
+        this.items = [];
+        this.priority = priority;
+    }
+
+    enqueue(element) {
+        this.items.push(element);
+        this.items.sort((a, b) => this.priority(a) - this.priority(b));
+    }
+
+    dequeue() {
+        return { element: this.items.shift() };
+    }
+
+    isEmpty() {
+        return this.items.length === 0;
+    }
+}
+
+function heuristicCostEstimate(nodeId, goalNodeId) {
+    var node = data.nodes.get(nodeId);
+    var goalNode = data.nodes.get(goalNodeId);
+
+    var dx = node.x - goalNode.x;
+    var dy = node.y - goalNode.y;
+
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+function distanceBetween(nodeId1, nodeId2) {
+    // For unweighted graphs, distance between adjacent nodes is 1
+    // If you have weights (e.g., actual distances), calculate accordingly
+    return 1;
+}
+
+function reconstructPath(cameFrom, currentNodeId) {
+    var totalPath = [currentNodeId];
+    while (cameFrom[currentNodeId] !== undefined) {
+        currentNodeId = cameFrom[currentNodeId];
+        totalPath.unshift(currentNodeId);
+    }
+    return totalPath;
+}
+
+   
    function calculateTouristRoute() {
     showLoading();
 
