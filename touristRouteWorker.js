@@ -1,6 +1,8 @@
 // touristRouteWorker.js
 
 onmessage = function(e) {
+    console.log('touristRouteWorker.js is running');
+
     var { fromId, toId, adjacencyList } = e.data;
 
     var maxDepth = 10; // Adjust as needed
