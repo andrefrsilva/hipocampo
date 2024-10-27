@@ -1,49 +1,54 @@
-// touristRouteWorker.js
+onmessage = function (e) {
+    var { fromId, toId, adjacencyList, maxAttempts, maxSteps } = e.data;
 
-onmessage = function(e) {
-    console.log('touristRouteWorker.js is running');
-
-    var { fromId, toId, adjacencyList } = e.data;
-
-    var maxDepth = 10; // Reduced to prevent long computation
-    var found = false;
     var bestPath = [];
-    var visitedEdges = {};
+    var attempt = 0;
 
-    function dfs(currentNode, targetNode, depth, path) {
-        if (depth > maxDepth) return;
-        if (currentNode === targetNode) {
-            if (path.length > bestPath.length) {
-                bestPath = path.slice();
-                found = true;
-            }
-            return;
+    while (attempt < maxAttempts) {
+        var path = randomWalk(fromId, toId, adjacencyList, maxSteps);
+        if (path.length > bestPath.length) {
+            bestPath = path;
         }
-
-        var neighbors = adjacencyList[currentNode];
-        if (!neighbors) return;
-
-        for (var i = 0; i < neighbors.length; i++) {
-            var neighborObj = neighbors[i];
-            var neighbor = neighborObj.node;
-            var edgeId = neighborObj.edgeId;
-
-            if (!visitedEdges[edgeId]) {
-                visitedEdges[edgeId] = true;
-                path.push({ node: neighbor, edgeId: edgeId });
-                dfs(neighbor, targetNode, depth + 1, path);
-                path.pop();
-                visitedEdges[edgeId] = false;
-            }
-        }
+        attempt++;
     }
 
-    dfs(fromId, toId, 0, [{ node: fromId, edgeId: null }]);
-
-    if (!found) {
+    if (bestPath.length === 0) {
         postMessage({ error: 'Nenhum caminho encontrado entre os pontos selecionados.' });
         return;
     }
 
-    postMessage({ bestPath: bestPath });
+    postMessage({ path: bestPath });
 };
+
+function randomWalk(startId, goalId, adjacencyList, maxSteps) {
+    var path = [startId];
+    var visited = new Set();
+    visited.add(startId);
+
+    var currentNode = startId;
+    var steps = 0;
+
+    while (currentNode !== goalId && steps < maxSteps) {
+        var neighbors = adjacencyList[currentNode];
+        var unvisitedNeighbors = neighbors.filter(n => !visited.has(n.node));
+
+        if (unvisitedNeighbors.length === 0) {
+            // Dead end, backtrack
+            break;
+        }
+
+        // Choose a random neighbor
+        var randomNeighbor = unvisitedNeighbors[Math.floor(Math.random() * unvisitedNeighbors.length)];
+
+        currentNode = randomNeighbor.node;
+        path.push(currentNode);
+        visited.add(currentNode);
+        steps++;
+    }
+
+    if (currentNode === goalId) {
+        return path;
+    } else {
+        return [];
+    }
+}
