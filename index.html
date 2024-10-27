@@ -237,7 +237,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.4</a>
               </center>
             </div>
         </div>
@@ -677,23 +677,36 @@ edgesArray.forEach(function(edge) {
     }
 
 function calculateShortestRoute() {
-    showLoading(); // Show loading animation
+    showLoading();
 
     var fromId = startSelect.value;
     var toId = endSelect.value;
 
     var startTime = performance.now();
 
-    // Allow the UI to update
-    setTimeout(function() {
-        // Call the optimized BFS algorithm
-        var path = bfsShortestPath(fromId, toId);
+    var worker = new Worker('shortestRouteWorker.js');
 
-        if (!path) {
-            alert('Nenhum caminho encontrado entre os pontos selecionados.');
-            hideLoading();
+    worker.onerror = function(error) {
+        hideLoading();
+        console.error('Worker error:', error);
+        alert('An error occurred in the worker: ' + error.message);
+    };
+
+    worker.postMessage({
+        startNodeId: fromId,
+        goalNodeId: toId,
+        adjacencyList: adjacencyList
+    });
+
+    worker.onmessage = function(e) {
+        hideLoading();
+
+        if (e.data.error) {
+            alert(e.data.error);
             return;
         }
+
+        var path = e.data.path;
 
         resetEdgeColors();
 
@@ -724,7 +737,9 @@ function calculateShortestRoute() {
 
         var endTime = performance.now();
         console.log('Total Route Calculation Time:', (endTime - startTime).toFixed(2), 'milliseconds');
-    }, 100); // Short delay to allow UI to update
+
+        worker.terminate();
+    };
 }
 
    function bfsShortestPath(startNodeId, goalNodeId) {
@@ -870,7 +885,13 @@ function reconstructPath(cameFrom, currentNodeId) {
     var fromId = startSelect.value;
     var toId = endSelect.value;
 
-    var worker = new Worker('touristRouteWorker.js');
+     var worker = new Worker('touristRouteWorker.js');
+
+worker.onerror = function(error) {
+    hideLoading();
+    console.error('Worker error:', error);
+    alert('An error occurred in the worker: ' + error.message);
+};
 
     worker.postMessage({
         fromId: fromId,
