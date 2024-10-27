@@ -238,7 +238,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.12</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.13</a>
               </center>
             </div>
         </div>
@@ -608,8 +608,11 @@ edgesArray.forEach(function(edge, index) {
         console.warn('Edge to-node not found in adjacencyList:', edge.to);
         return; // Skip this edge
     }
-    adjacencyList[edge.from].push({ node: edge.to, edgeId: edge.id });
-    adjacencyList[edge.to].push({ node: edge.from, edgeId: edge.id });
+  
+  // Initialize all edge weights to 1
+    adjacencyList[edge.from].push({ node: edge.to, edgeId: edge.id, weight: 1 });
+    adjacencyList[edge.to].push({ node: edge.from, edgeId: edge.id, weight: 1 });
+  
 });
       
             if (fromFound && toFound) {
