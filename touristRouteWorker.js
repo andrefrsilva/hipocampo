@@ -1,52 +1,44 @@
 // touristRouteWorker.js
 
 onmessage = function(e) {
-    var { fromId, toId, adjacencyList } = e.data;
+    var { startNodeId, endNodeId, nodeIds, adjacencyList } = e.data;
 
-    // Step 1: Find the shortest path
-    var shortestPath = dijkstra(fromId, toId, adjacencyList);
+    // Maximum number of attempts to find a valid random node
+    var maxAttempts = 100;
+    var attempt = 0;
+    var touristPath = null;
 
-    if (!shortestPath) {
-        postMessage({ error: 'No path found between the selected points.' });
-        return;
+    while (attempt < maxAttempts) {
+        attempt++;
+
+        // Select a random node that is neither the start nor the end node
+        var randomNodeId = nodeIds[Math.floor(Math.random() * nodeIds.length)];
+
+        if (randomNodeId === startNodeId || randomNodeId === endNodeId) {
+            continue;
+        }
+
+        // Find path from start to random node
+        var pathToRandom = dijkstra(startNodeId, randomNodeId, adjacencyList);
+
+        // Find path from random node to end node
+        var pathFromRandom = dijkstra(randomNodeId, endNodeId, adjacencyList);
+
+        if (pathToRandom && pathFromRandom) {
+            // Combine paths, avoiding duplication of the random node
+            touristPath = pathToRandom.concat(pathFromRandom.slice(1));
+            break;
+        }
     }
 
-    // Step 2: Increase weights of edges in the shortest path
-    var adjustedAdjacencyList = JSON.parse(JSON.stringify(adjacencyList)); // Deep copy
-
-    for (var i = 0; i < shortestPath.length - 1; i++) {
-        var fromNode = shortestPath[i];
-        var toNode = shortestPath[i + 1];
-
-        adjustEdgeWeight(adjustedAdjacencyList, fromNode, toNode, 10); // Increase weight by 10
-    }
-
-    // Step 3: Find the tourist path
-    var touristPath = dijkstra(fromId, toId, adjustedAdjacencyList);
-
-    if (!touristPath || arraysEqual(shortestPath, touristPath)) {
-        postMessage({ error: 'No alternative tourist route found.' });
-    } else {
+    if (touristPath) {
         postMessage({ path: touristPath });
+    } else {
+        postMessage({ error: 'Não foi possível encontrar um caminho turístico.' });
     }
 };
 
-// Adjust edge weights in the adjacency list
-function adjustEdgeWeight(adjacencyList, fromNode, toNode, weightIncrease) {
-    var adjust = function(nodeA, nodeB) {
-        var neighbors = adjacencyList[nodeA];
-        for (var neighbor of neighbors) {
-            if (neighbor.node === nodeB) {
-                neighbor.weight += weightIncrease;
-                break;
-            }
-        }
-    };
-    adjust(fromNode, toNode);
-    adjust(toNode, fromNode); // For undirected graph
-}
-
-// Modify Dijkstra's algorithm to use edge weights
+// Dijkstra's Algorithm
 function dijkstra(startNodeId, goalNodeId, adjacencyList) {
     var distances = {};
     var previous = {};
@@ -80,9 +72,7 @@ function dijkstra(startNodeId, goalNodeId, adjacencyList) {
         if (neighbors) {
             for (var neighborObj of neighbors) {
                 var neighborId = neighborObj.node;
-                var edgeWeight = neighborObj.weight || 1; // Use weight if available
-
-                var alt = distances[currentNodeId] + edgeWeight;
+                var alt = distances[currentNodeId] + 1; // Assuming all edges have weight 1
 
                 if (alt < distances[neighborId]) {
                     distances[neighborId] = alt;
@@ -97,20 +87,60 @@ function dijkstra(startNodeId, goalNodeId, adjacencyList) {
     return null;
 }
 
-// Simple Priority Queue implementation (include as before)
+// Simple Priority Queue implementation
 class PriorityQueue {
     constructor(comparator = (a, b) => a.distance < b.distance) {
         this._heap = [];
         this._comparator = comparator;
     }
-    // ... (rest of the PriorityQueue class)
-}
-
-// Arrays equal function
-function arraysEqual(a1, a2) {
-    if (a1.length !== a2.length) return false;
-    for (var i = 0; i < a1.length; i++) {
-        if (a1[i] !== a2[i]) return false;
+    size() {
+        return this._heap.length;
     }
-    return true;
+    isEmpty() {
+        return this.size() === 0;
+    }
+    peek() {
+        return this._heap[0];
+    }
+    push(value) {
+        this._heap.push(value);
+        this._siftUp();
+        return this.size();
+    }
+    pop() {
+        const poppedValue = this.peek();
+        const bottom = this.size() - 1;
+        if (bottom > 0) {
+            this._swap(0, bottom);
+        }
+        this._heap.pop();
+        this._siftDown();
+        return poppedValue;
+    }
+    _greater(i, j) {
+        return this._comparator(this._heap[i], this._heap[j]);
+    }
+    _swap(i, j) {
+        [this._heap[i], this._heap[j]] = [this._heap[j], this._heap[i]];
+    }
+    _siftUp() {
+        let node = this.size() - 1;
+        while (node > 0 && this._greater(node, Math.floor((node - 1) / 2))) {
+            this._swap(node, Math.floor((node - 1) / 2));
+            node = Math.floor((node - 1) / 2);
+        }
+    }
+    _siftDown() {
+        let node = 0;
+        while (
+            (node * 2 + 1 < this.size() && this._greater(node * 2 + 1, node)) ||
+            (node * 2 + 2 < this.size() && this._greater(node * 2 + 2, node))
+        ) {
+            let maxChild = (node * 2 + 2 < this.size() && this._greater(node * 2 + 2, node * 2 + 1))
+                ? node * 2 + 2
+                : node * 2 + 1;
+            this._swap(node, maxChild);
+            node = maxChild;
+        }
+    }
 }
