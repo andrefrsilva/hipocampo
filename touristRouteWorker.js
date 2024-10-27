@@ -3,7 +3,7 @@
 onmessage = function(e) {
     var { fromId, toId, adjacencyList } = e.data;
 
-    var k = 3; // Number of paths to find
+    var k = 10; // Number of paths to find
     var paths = yenAlgorithm(fromId, toId, adjacencyList, k);
 
     if (paths.length > 1) {
