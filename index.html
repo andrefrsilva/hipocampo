@@ -1,6 +1,6 @@
 <head>
     <meta charset="UTF-8">
-    <title>HIPOCAMPO v0.1</title>
+    <title>HIPOCAMPO</title>
     <link rel="icon" type="image/png" href="https://i.postimg.cc/cL3HJPY6/android-chrome-192x192.png">
     <meta property="og:title" content="Hipocampo">
     <meta property="og:description" content="Encontre o caminho sem chatear o segurança.">
@@ -238,7 +238,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.9</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v.11</a>
               </center>
             </div>
         </div>
@@ -727,11 +727,14 @@ edgesArray.forEach(function(edge, index) {
 }
 
    
-    function resetEdgeColors() {
-        data.edges.forEach(function(edge) {
-            data.edges.update({ id: edge.id, color: { color: '#848484' }, width: 2 });
-        });
-    }
+function resetEdgeColors() {
+    var updates = [];
+    data.edges.forEach(function(edge) {
+        updates.push({ id: edge.id, color: { color: '#848484' }, width: 2 });
+    });
+    data.edges.update(updates);
+}
+
 
 function calculateShortestRoute() {
     showLoading();
@@ -755,19 +758,22 @@ function calculateShortestRoute() {
         adjacencyList: adjacencyList
     });
 
-    worker.onmessage = function(e) {
-        hideLoading();
+  worker.onmessage = function(e) {
+    hideLoading();
 
-        if (e.data.error) {
-            alert(e.data.error);
-            return;
-        }
+    if (e.data.error) {
+        displayMessage(e.data.error); // Replace alert with non-blocking message
+        return;
+    }
 
-        var path = e.data.path;
+    var path = e.data.path;
 
-        resetEdgeColors();
+    resetEdgeColors();
 
-        // Highlight the path
+    requestAnimationFrame(function() {
+        // Batch edge updates
+        var edgeUpdates = [];
+
         for (var i = 0; i < path.length - 1; i++) {
             var fromNode = path[i];
             var toNode = path[i + 1];
@@ -780,23 +786,32 @@ function calculateShortestRoute() {
             })[0];
 
             if (edgeId !== undefined) {
-                data.edges.update({ id: edgeId, color: { color: '#FF0000' }, width: 10 });
+                edgeUpdates.push({ id: edgeId, color: { color: '#FF0000' }, width: 8 });
             }
         }
+
+        data.edges.update(edgeUpdates);
 
         // Focus on the path
         network.fit({
             nodes: path,
-            animation: true,
+            animation: {
+                duration: 500,
+                easingFunction: 'easeInOutQuad',
+            },
         });
 
-        hideLoading(); // Hide loading animation
-
-        var endTime = performance.now();
-        console.log('Total Route Calculation Time:', (endTime - startTime).toFixed(2), 'milliseconds');
+        // Trigger confetti animation
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
 
         worker.terminate();
-    };
+    });
+};
+
 }
 
    function bfsShortestPath(startNodeId, goalNodeId) {
@@ -1026,10 +1041,13 @@ function calculateTouristRoute() {
         }
 
         // Focus on the path
-        network.fit({
-            nodes: path,
-            animation: true,
-        });
+network.fit({
+    nodes: path,
+    animation: {
+        duration: 500,
+        easingFunction: 'easeInOutQuad',
+    },
+});
 
         // Trigger confetti animation
         confetti({
