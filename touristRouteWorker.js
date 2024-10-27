@@ -3,7 +3,7 @@
 onmessage = function(e) {
     var { fromId, toId, adjacencyList } = e.data;
 
-    var maxDepth = 20; // Adjust as needed
+    var maxDepth = 10; // Adjust as needed
     var found = false;
     var bestPath = [];
     var visitedEdges = {};
