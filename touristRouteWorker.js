@@ -1,4 +1,4 @@
-importScripts('https://cdn.jsdelivr.net/npm/fastpriorityqueue@0.6.3/FastPriorityQueue.js');
+// touristRouteWorker.js
 
 onmessage = function(e) {
     var { fromId, toId, adjacencyList } = e.data;
@@ -11,16 +11,80 @@ onmessage = function(e) {
         var touristPath = paths[1];
 
         postMessage({ path: touristPath });
+    } else if (paths.length > 0) {
+        // Only one path found, use it
+        var touristPath = paths[0];
+        postMessage({ path: touristPath });
     } else {
         postMessage({ error: 'Não foi possível encontrar um caminho turístico mais longo.' });
     }
 };
 
+// Include the PriorityQueue class here
+
+// Simple Priority Queue implementation
+class PriorityQueue {
+    constructor(comparator = (a, b) => a.cost < b.cost) {
+        this._heap = [];
+        this._comparator = comparator;
+    }
+    size() {
+        return this._heap.length;
+    }
+    isEmpty() {
+        return this.size() === 0;
+    }
+    peek() {
+        return this._heap[0];
+    }
+    push(value) {
+        this._heap.push(value);
+        this._siftUp();
+        return this.size();
+    }
+    pop() {
+        const poppedValue = this.peek();
+        const bottom = this.size() - 1;
+        if (bottom > 0) {
+            this._swap(0, bottom);
+        }
+        this._heap.pop();
+        this._siftDown();
+        return poppedValue;
+    }
+    _greater(i, j) {
+        return this._comparator(this._heap[i], this._heap[j]);
+    }
+    _swap(i, j) {
+        [this._heap[i], this._heap[j]] = [this._heap[j], this._heap[i]];
+    }
+    _siftUp() {
+        let node = this.size() - 1;
+        while (node > 0 && this._greater(node, Math.floor((node - 1) / 2))) {
+            this._swap(node, Math.floor((node - 1) / 2));
+            node = Math.floor((node - 1) / 2);
+        }
+    }
+    _siftDown() {
+        let node = 0;
+        while (
+            (node * 2 + 1 < this.size() && this._greater(node * 2 + 1, node)) ||
+            (node * 2 + 2 < this.size() && this._greater(node * 2 + 2, node))
+        ) {
+            let maxChild = (node * 2 + 2 < this.size() && this._greater(node * 2 + 2, node * 2 + 1))
+                ? node * 2 + 2
+                : node * 2 + 1;
+            this._swap(node, maxChild);
+            node = maxChild;
+        }
+    }
+}
+
 // Dijkstra's Algorithm
 function dijkstra(startNodeId, goalNodeId, adjacencyList, removedEdges = new Set()) {
     var distances = {};
     var previous = {};
-    var queue = new FastPriorityQueue((a, b) => a.distance < b.distance);
+    var queue = new PriorityQueue((a, b) => a.distance < b.distance);
 
     // Initialize distances
     for (var nodeId in adjacencyList) {
@@ -28,10 +92,10 @@ function dijkstra(startNodeId, goalNodeId, adjacencyList, removedEdges = new Set
     }
     distances[startNodeId] = 0;
 
-    queue.add({ id: startNodeId, distance: 0 });
+    queue.push({ id: startNodeId, distance: 0 });
 
     while (!queue.isEmpty()) {
-        var current = queue.poll();
+        var current = queue.pop();
         var currentNodeId = current.id;
 
         if (currentNodeId === goalNodeId) {
@@ -60,7 +124,7 @@ function dijkstra(startNodeId, goalNodeId, adjacencyList, removedEdges = new Set
                 if (alt < distances[neighborId]) {
                     distances[neighborId] = alt;
                     previous[neighborId] = currentNodeId;
-                    queue.add({ id: neighborId, distance: alt });
+                    queue.push({ id: neighborId, distance: alt });
                 }
             }
         }
@@ -73,7 +137,7 @@ function dijkstra(startNodeId, goalNodeId, adjacencyList, removedEdges = new Set
 // Yen's Algorithm
 function yenAlgorithm(startNodeId, goalNodeId, adjacencyList, k) {
     var paths = [];
-    var potentialPaths = new FastPriorityQueue((a, b) => a.cost < b.cost);
+    var potentialPaths = new PriorityQueue((a, b) => a.cost < b.cost);
 
     // Step 1: Find the shortest path
     var firstPath = dijkstra(startNodeId, goalNodeId, adjacencyList);
@@ -104,13 +168,15 @@ function yenAlgorithm(startNodeId, goalNodeId, adjacencyList, k) {
                 // Combine root path and spur path to form a new path
                 var totalPath = rootPath.slice(0, -1).concat(spurPath);
                 var totalCost = totalPath.length;
-                potentialPaths.add({ path: totalPath, cost: totalCost });
+                if (!pathExistsInPaths(paths, totalPath)) {
+                    potentialPaths.push({ path: totalPath, cost: totalCost });
+                }
             }
         }
 
         if (potentialPaths.isEmpty()) break;
 
-        var nextPath = potentialPaths.poll();
+        var nextPath = potentialPaths.pop();
         paths.push(nextPath);
     }
 
@@ -118,7 +184,11 @@ function yenAlgorithm(startNodeId, goalNodeId, adjacencyList, k) {
 }
 
 function arraysEqual(a1, a2) {
-    return JSON.stringify(a1) === JSON.stringify(a2);
+    if (a1.length !== a2.length) return false;
+    for (var i = 0; i < a1.length; i++) {
+        if (a1[i] !== a2[i]) return false;
+    }
+    return true;
 }
 
 function getEdgeIdBetweenNodes(nodeA, nodeB, adjacencyList) {
@@ -131,4 +201,13 @@ function getEdgeIdBetweenNodes(nodeA, nodeB, adjacencyList) {
         }
     }
     return null;
+}
+
+function pathExistsInPaths(paths, newPath) {
+    for (var pathObj of paths) {
+        if (arraysEqual(pathObj.path, newPath)) {
+            return true;
+        }
+    }
+    return false;
 }
