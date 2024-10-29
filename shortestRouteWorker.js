@@ -1,3 +1,5 @@
+// shortestRouteWorker.js
+
 onmessage = function(e) {
     var { startNodeId, goalNodeId, adjacencyList } = e.data;
 
