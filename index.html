@@ -238,7 +238,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.14</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.15</a>
               </center>
             </div>
         </div>
@@ -389,33 +389,36 @@ console.time('Total Load Time');
                     nodesArray.push(nodeObj);
                 });
 
-                edgesJSON.forEach(function(edge, index) {
-                    var edgeObj = {};
-                    edgeObj.id = index.toString();
+               edgesJSON.forEach(function(edge, index) {
+    var edgeObj = {};
+    edgeObj.id = index.toString();
 
-                    var edgeFromName = edge['A'].trim();
-                    var edgeToName = edge['B'].trim();
+    var edgeFromName = edge['A'].trim();
+    var edgeToName = edge['B'].trim();
 
-                    edgeObj.from = nodeIdMapping[standardizeId(edgeFromName)];
-                    edgeObj.to = nodeIdMapping[standardizeId(edgeToName)];
+    edgeObj.from = nodeIdMapping[standardizeId(edgeFromName)];
+    edgeObj.to = nodeIdMapping[standardizeId(edgeToName)];
 
-                    if (!edgeObj.from) {
-                        console.error('Edge from-node not found in nodeIdMapping:', edgeFromName);
-                    }
-                    if (!edgeObj.to) {
-                        console.error('Edge to-node not found in nodeIdMapping:', edgeToName);
-                    }
+    if (!edgeObj.from) {
+        console.error('Edge from-node not found in nodeIdMapping:', edgeFromName);
+    }
+    if (!edgeObj.to) {
+        console.error('Edge to-node not found in nodeIdMapping:', edgeToName);
+    }
 
-                    if (edgeObj.from && edgeObj.to) {
-                        if (edge['Dashes'] === true || edge['Dashes'] === 'TRUE' || edge['Dashes'] === 1) {
-                            edgeObj.dashes = true;
-                            edgeObj.color = { color: 'pink' };
-                        }
-                        edgesArray.push(edgeObj);
-                    } else {
-                        console.warn('Skipping edge due to missing nodes:', edgeObj);
-                    }
-                });
+    if (edgeObj.from && edgeObj.to) {
+        // **Add this line to store the distance**
+        edgeObj.distance = parseFloat(edge['Distance']) || 1; // Default to 1 if undefined
+
+        if (edge['Dashes'] === true || edge['Dashes'] === 'TRUE' || edge['Dashes'] === 1) {
+            edgeObj.dashes = true;
+            edgeObj.color = { color: 'pink' };
+        }
+        edgesArray.push(edgeObj);
+    } else {
+        console.warn('Skipping edge due to missing nodes:', edgeObj);
+    }
+});
           
             // **Adicionar nós e arestas extras hardcoded**
             // Nodes extras
@@ -596,10 +599,7 @@ selectElements.forEach(function(select) {
         });
 
 edgesArray.forEach(function(edge, index) {
-    var edgeObj = {};
-    edgeObj.id = index.toString();
-   edgeObj.weight = 1; // Initialize all edge weights to 1
-  
+    // Ensure both nodes exist in the adjacency list
     if (!adjacencyList[edge.from]) {
         console.warn('Edge from-node not found in adjacencyList:', edge.from);
         return; // Skip this edge
@@ -608,11 +608,12 @@ edgesArray.forEach(function(edge, index) {
         console.warn('Edge to-node not found in adjacencyList:', edge.to);
         return; // Skip this edge
     }
-  
-  // Initialize all edge weights to 1
-    adjacencyList[edge.from].push({ node: edge.to, edgeId: edge.id });
-    adjacencyList[edge.to].push({ node: edge.from, edgeId: edge.id });
-  
+
+    // Include the distance as the weight
+    var distance = edge.distance || 1; // Default to 1 if undefined
+
+    adjacencyList[edge.from].push({ node: edge.to, edgeId: edge.id, weight: distance });
+    adjacencyList[edge.to].push({ node: edge.from, edgeId: edge.id, weight: distance });
 });
       
             if (fromFound && toFound) {
@@ -740,28 +741,7 @@ function resetEdgeColors() {
 
 
 function calculateShortestRoute() {
-    showLoading();
-
-    var fromId = startSelect.value;
-    var toId = endSelect.value;
-
-    var startTime = performance.now();
-
-    var worker = new Worker('shortestRouteWorker.js');
-
-    worker.onerror = function(error) {
-        hideLoading();
-        console.error('Worker error:', error);
-        alert('An error occurred in the worker: ' + error.message);
-    };
-
-    worker.postMessage({
-        startNodeId: fromId,
-        goalNodeId: toId,
-        adjacencyList: adjacencyList
-    });
-
-  worker.onmessage = function(e) {
+   worker.onmessage = function(e) {
     hideLoading();
 
     if (e.data.error) {
@@ -814,6 +794,7 @@ function calculateShortestRoute() {
         worker.terminate();
     });
 };
+
 
 }
 
