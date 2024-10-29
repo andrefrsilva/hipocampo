@@ -238,7 +238,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.15</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.17</a>
               </center>
             </div>
         </div>
@@ -741,61 +741,85 @@ function resetEdgeColors() {
 
 
 function calculateShortestRoute() {
-   worker.onmessage = function(e) {
-    hideLoading();
+    showLoading();
 
-    if (e.data.error) {
-        displayMessage(e.data.error); // Replace alert with non-blocking message
-        return;
-    }
+    var fromId = startSelect.value;
+    var toId = endSelect.value;
 
-    var path = e.data.path;
+    var startTime = performance.now();
 
-    resetEdgeColors();
+    // **Create the worker instance**
+    var worker = new Worker('shortestRouteWorker.js');
 
-    requestAnimationFrame(function() {
-        // Batch edge updates
-        var edgeUpdates = [];
+    // **Set up the error handler**
+    worker.onerror = function(error) {
+        hideLoading();
+        console.error('Worker error:', error);
+        alert('An error occurred in the worker: ' + error.message);
+    };
 
-        for (var i = 0; i < path.length - 1; i++) {
-            var fromNode = path[i];
-            var toNode = path[i + 1];
+    // **Send data to the worker**
+    worker.postMessage({
+        startNodeId: fromId,
+        goalNodeId: toId,
+        adjacencyList: adjacencyList
+    });
 
-            var edgeId = data.edges.getIds({
-                filter: function(edge) {
-                    return (edge.from === fromNode && edge.to === toNode) ||
-                           (edge.from === toNode && edge.to === fromNode);
-                }
-            })[0];
+    // **Set up the message handler**
+    worker.onmessage = function(e) {
+        hideLoading();
 
-            if (edgeId !== undefined) {
-                edgeUpdates.push({ id: edgeId, color: { color: '#FF0000' }, width: 8 });
-            }
+        if (e.data.error) {
+            alert(e.data.error); // Replace with your preferred error handling
+            return;
         }
 
-        data.edges.update(edgeUpdates);
+        var path = e.data.path;
 
-        // Focus on the path
-        network.fit({
-            nodes: path,
-            animation: {
-                duration: 500,
-                easingFunction: 'easeInOutQuad',
-            },
+        resetEdgeColors();
+
+        requestAnimationFrame(function() {
+            // Batch edge updates
+            var edgeUpdates = [];
+
+            for (var i = 0; i < path.length - 1; i++) {
+                var fromNode = path[i];
+                var toNode = path[i + 1];
+
+                var edgeId = data.edges.getIds({
+                    filter: function(edge) {
+                        return (edge.from === fromNode && edge.to === toNode) ||
+                               (edge.from === toNode && edge.to === fromNode);
+                    }
+                })[0];
+
+                if (edgeId !== undefined) {
+                    edgeUpdates.push({ id: edgeId, color: { color: '#FF0000' }, width: 8 });
+                }
+            }
+
+            data.edges.update(edgeUpdates);
+
+            // Focus on the path
+            network.fit({
+                nodes: path,
+                animation: {
+                    duration: 500,
+                    easingFunction: 'easeInOutQuad',
+                },
+            });
+
+            // Trigger confetti animation
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            // **Terminate the worker**
+            worker.terminate();
         });
-
-        // Trigger confetti animation
-        confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { y: 0.6 }
-        });
-
-        worker.terminate();
-    });
-};
-
-
+    };
 }
 
    function bfsShortestPath(startNodeId, goalNodeId) {
