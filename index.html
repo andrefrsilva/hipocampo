@@ -238,7 +238,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.17</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.18</a>
               </center>
             </div>
         </div>
@@ -411,7 +411,7 @@ console.time('Total Load Time');
         edgeObj.distance = parseFloat(edge['Distance']) || 1; // Default to 1 if undefined
 
         if (edge['Dashes'] === true || edge['Dashes'] === 'TRUE' || edge['Dashes'] === 1) {
-            edgeObj.dashes = true;
+            edgeObj.dashes = [0, 5];
             edgeObj.color = { color: 'pink' };
         }
         edgesArray.push(edgeObj);
