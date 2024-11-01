@@ -228,6 +228,27 @@ a:hover {
     height: auto;
 }
       
+      .nav-arrow {
+    position: fixed;
+    bottom: 70px; /* Adjust to align with footer credits */
+    font-size: 48px;
+    color: red;
+    opacity: 0.5;
+    cursor: pointer;
+    z-index: 1500;
+    user-select: none;
+    display: none; /* Initially hidden */
+}
+
+.left-arrow {
+    left: 10px;
+}
+
+.right-arrow {
+    right: 10px;
+}
+
+      
     </style>
 </head>
 <body>
@@ -238,7 +259,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.18</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.19</a>
               </center>
             </div>
         </div>
@@ -272,10 +293,13 @@ a:hover {
     <div id="mynetwork"></div>
 </div>
   
+  <div id="leftArrow" class="nav-arrow left-arrow">◂</div>
+<div id="rightArrow" class="nav-arrow right-arrow">▸</div>
+  
 <div id="watermark">
   <center>
 Pressione o local para ver a foto.<br>
-    © 2024 <a href="https://www.linkedin.com/in/andrefrsilva/" target="_blank">André</a>, with ❤️
+    © 2024 <a href="#" onclick="submitAndre(); return false;">André</a>, with ❤️
     </center>
 </div>
 
@@ -302,6 +326,18 @@ Pressione o local para ver a foto.<br>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
  <script type="text/javascript">
+   // Generate or retrieve device ID
+var deviceId;
+if (localStorage.getItem('deviceId')) {
+    deviceId = localStorage.getItem('deviceId');
+} else {
+    deviceId = 'device-' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('deviceId', deviceId);
+}
+
+   var currentPath = [];
+var currentNodeIndex = 0;
+
    // At the very top
 console.time('Total Load Time');
    
@@ -407,18 +443,24 @@ console.time('Total Load Time');
     }
 
     if (edgeObj.from && edgeObj.to) {
-        // **Add this line to store the distance**
         edgeObj.distance = parseFloat(edge['Distance']) || 1; // Default to 1 if undefined
 
         if (edge['Dashes'] === true || edge['Dashes'] === 'TRUE' || edge['Dashes'] === 1) {
             edgeObj.dashes = [0, 5];
             edgeObj.color = { color: 'pink' };
+        } else {
+            edgeObj.color = { color: '#848484' }; // Default color
         }
+
+        // **Store the original color**
+        edgeObj.originalColor = edgeObj.color;
+
         edgesArray.push(edgeObj);
     } else {
         console.warn('Skipping edge due to missing nodes:', edgeObj);
     }
 });
+
           
             // **Adicionar nós e arestas extras hardcoded**
             // Nodes extras
@@ -651,6 +693,23 @@ edgesArray.forEach(function(edge, index) {
             }
         });
       
+      document.getElementById('leftArrow').addEventListener('click', function() {
+    if (currentPath.length > 0) {
+        // Move to previous node
+        currentNodeIndex = (currentNodeIndex - 1 + currentPath.length) % currentPath.length;
+        highlightCurrentNode();
+    }
+});
+
+document.getElementById('rightArrow').addEventListener('click', function() {
+    if (currentPath.length > 0) {
+        // Move to next node
+        currentNodeIndex = (currentNodeIndex + 1) % currentPath.length;
+        highlightCurrentNode();
+    }
+});
+
+      
         // Extrair pisos únicos para desenhar labels
         var floors = [...new Set(nodesArray.map(node => node.floor))];
 
@@ -734,7 +793,7 @@ edgesArray.forEach(function(edge, index) {
 function resetEdgeColors() {
     var updates = [];
     data.edges.forEach(function(edge) {
-        updates.push({ id: edge.id, color: { color: '#848484' }, width: 2 });
+        updates.push({ id: edge.id, color: edge.originalColor, width: 2 });
     });
     data.edges.update(updates);
 }
@@ -818,8 +877,46 @@ function calculateShortestRoute() {
 
             // **Terminate the worker**
             worker.terminate();
+          
+          // Inside worker.onmessage, after worker.terminate();
+currentPath = path;
+currentNodeIndex = 0;
+highlightCurrentNode();
+
+// Show the navigation arrows
+document.getElementById('leftArrow').style.display = 'block';
+document.getElementById('rightArrow').style.display = 'block';
+          
+          // After worker.terminate();
+var fromText = startSelect.options[startSelect.selectedIndex].text;
+var toText = endSelect.options[endSelect.selectedIndex].text;
+
+// Submit data to Google Form
+submitToGoogleForm(fromText, toText, 'short');
+
+
         });
     };
+}
+
+   function highlightCurrentNode() {
+    // Reset colors of all nodes in the path
+    data.nodes.update(currentPath.map(function(nodeId) {
+        return { id: nodeId, color: undefined };
+    }));
+
+    // Highlight the current node
+    var currentNodeId = currentPath[currentNodeIndex];
+    data.nodes.update({ id: currentNodeId, color: { background: 'red' } });
+
+    // Focus on the current node
+    network.focus(currentNodeId, {
+        scale: 1.5, // Adjust the zoom level as needed
+        animation: {
+            duration: 500,
+            easingFunction: 'easeInOutQuad'
+        }
+    });
 }
 
    function bfsShortestPath(startNodeId, goalNodeId) {
@@ -1074,6 +1171,22 @@ function calculateTouristRoute() {
             });
 
             worker.terminate();
+          
+                    // Inside worker.onmessage, after worker.terminate();
+currentPath = path;
+currentNodeIndex = 0;
+highlightCurrentNode();
+
+// Show the navigation arrows
+document.getElementById('leftArrow').style.display = 'block';
+document.getElementById('rightArrow').style.display = 'block';
+          
+          // After worker.terminate();
+var fromText = startSelect.options[startSelect.selectedIndex].text;
+var toText = endSelect.options[endSelect.selectedIndex].text;
+
+// Submit data to Google Form
+submitToGoogleForm(fromText, toText, 'tourist');
         });
     };
 }
@@ -1110,6 +1223,49 @@ function showLoading() {
 function hideLoading() {
     const loadingOverlay = document.getElementById("loadingOverlay");
     loadingOverlay.style.display = "none";
+}
+   
+   function submitToGoogleForm(fromText, toText, type) {
+    const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSdaYpA-Ao2GDRYZZswwpzAHj6YyfezSBuZgcER8leb78QtakQ/formResponse';
+
+    // Prepare form data using URLSearchParams
+    const formData = new URLSearchParams();
+
+    // Append all entry IDs with data
+    formData.append('entry.1817943713', deviceId); // Device ID
+    if (fromText) {
+        formData.append('entry.7686362', fromText); // From text
+    }
+    if (toText) {
+        formData.append('entry.239413929', toText); // To text
+    }
+    formData.append('entry.614632778', type); // Type
+
+    // Send the data to Google Form
+    fetch(formUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData.toString()
+    })
+    .then(() => {
+        console.log('Form submitted successfully.');
+    })
+    .catch((error) => {
+        console.error('Error submitting form:', error);
+    });
+}
+
+function submitAndre() {
+    // Submit data to Google Form
+    submitToGoogleForm(null, null, 'Andre');
+
+    // Open the link in a new tab
+    window.open('https://www.linkedin.com/in/andrefrsilva/', '_blank');
+
+    return false; // Prevent default link behavior
 }
 
 </script>
