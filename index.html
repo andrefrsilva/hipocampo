@@ -7,13 +7,9 @@
     <meta property="og:image" content="https://i.postimg.cc/cL3HJPY6/android-chrome-192x192.png">
     <meta property="og:url" content="https://hipocampo.pt">
     <meta name="twitter:card" content="summary_large_image">
-    <!-- Meta Viewport para Design Responsivo -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Incluir CSS do Bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-    <!-- Incluir vis-network -->
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-    <!-- Incluir SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
@@ -21,12 +17,12 @@
 
     <style>
       a {
-    color: orange; /* Sets the color of hyperlinks to orange */
-    text-decoration: none; /* Optional: Removes the underline from links */
+    color: orange;
+    text-decoration: none;
 }
 
 a:hover {
-    color: darkorange; /* Optional: Changes the color on hover */
+    color: darkorange;
 }
       
         .info-button {
@@ -70,7 +66,7 @@ a:hover {
             overflow: hidden;
             height: 100%;
         }
-        /* Estilos para o Modal */
+      
         #modalOverlay {
             display: none;
             position: fixed;
@@ -122,7 +118,7 @@ a:hover {
             color: orange;
             #text-decoration: underline;
         }
-        /* Ajustes de estilos */
+      
         .form-control {
             display: inline-block;
             width: auto;
@@ -144,7 +140,7 @@ a:hover {
             margin-bottom: 0;
             margin-right: 5px;
         }
-        /* Button Styles */
+      
         .btn-yellow {
             background-color: #FFC107;
             border-color: #FFC107;
@@ -155,7 +151,7 @@ a:hover {
             border-color: #FFB300;
             color: #fff;
         }
-        /* Centering Controls */
+      
         .controls-group {
             display: flex;
             flex-wrap: wrap;
@@ -174,9 +170,9 @@ a:hover {
         .path-controls {
             margin-left: 15px;
         }
-        /* Responsive Adjustments */
+      
         @media (max-width: 992px) {
-            /* For smaller screens, allow wrapping of controls group */
+          
             .controls-group {
                 flex-wrap: wrap;
             }
@@ -192,7 +188,7 @@ a:hover {
             }
         }
         @media (max-width: 576px) {
-            /* Adjust dropdown widths on very small screens */
+          
             .form-control {
                 max-width: 100px;
             }
@@ -281,7 +277,7 @@ Em alguns locais pode pressionar para ver a foto.<br>
     </center>
 </div>
 
-<!-- Modal for Image Display -->
+  
 <div id="modalOverlay">
     <div id="modalContent">
         <button id="closeModalBtn">&times;</button>
@@ -289,19 +285,17 @@ Em alguns locais pode pressionar para ver a foto.<br>
     </div>
 </div>
 
-  <!-- Loading Overlay -->
+  
 <div class="loading-overlay" id="loadingOverlay">
     <div class="cat-container">
         <img src="https://i.postimg.cc/MH0mWkv2/ezgif-com-animated-gif-maker.gif" alt="Dancing Cat" class="cat-gif">
     </div>
 </div>
   
-<!-- Incluir dependências JS do Bootstrap -->
+  
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-<!-- Incluir Popper.js para tooltips do Bootstrap (se necessário) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-<!-- Incluir JS do Bootstrap -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
  <script type="text/javascript">
    var deviceId;
@@ -312,7 +306,6 @@ if (localStorage.getItem('deviceId')) {
     localStorage.setItem('deviceId', deviceId);
 }
    
-   // At the very top
 console.time('Total Load Time');
    
         var data, network, adjacencyList, startSelect, endSelect, imageMap, nodeIdMapping, nodeIdToNameMapping;
@@ -321,7 +314,6 @@ console.time('Total Load Time');
             return id.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         }
 
-        // Load data and initialize the network
         loadDataAndInitialize();
 
         async function loadDataAndInitialize() {
@@ -417,16 +409,15 @@ console.time('Total Load Time');
     }
 
     if (edgeObj.from && edgeObj.to) {
-        edgeObj.distance = parseFloat(edge['Distance']) || 1; // Default to 1 if undefined
+        edgeObj.distance = parseFloat(edge['Distance']) || 1;
 
         if (edge['Dashes'] === true || edge['Dashes'] === 'TRUE' || edge['Dashes'] === 1) {
             edgeObj.dashes = [0, 5];
             edgeObj.color = { color: 'pink' };
         } else {
-            edgeObj.color = { color: '#848484' }; // Default color
+            edgeObj.color = { color: '#848484' };
         }
 
-        // **Store the original color**
         edgeObj.originalColor = edgeObj.color;
 
         edgesArray.push(edgeObj);
@@ -435,8 +426,7 @@ console.time('Total Load Time');
     }
 });
 
-            // **Adicionar nós e arestas extras hardcoded**
-            // Nodes extras
+            // Extra Nodes
               nodesArray.push({
                 id: 'dash_piso0_A',
                 label: '',
@@ -455,7 +445,6 @@ console.time('Total Load Time');
                 fixed: true,
               Tipo: 'aux'
             });
-            // Aresta extra
             edgesArray.push({
                 id: 'dash_piso0',
                 from: 'dash_piso0_A',
@@ -481,7 +470,6 @@ console.time('Total Load Time');
                 fixed: true,
               Tipo: 'aux'
             });
-            // Aresta extra
             edgesArray.push({
                 id: 'dash_piso1',
                 from: 'dash_piso1_A',
@@ -489,7 +477,6 @@ console.time('Total Load Time');
               color: 'black'
             });
           
-           // Nodes extras
             nodesArray.push({
                 id: 'dash_piso2_A',
                 label: '',
@@ -508,7 +495,6 @@ console.time('Total Load Time');
                 fixed: true,
               Tipo: 'aux'
             });
-            // Aresta extra
             edgesArray.push({
                 id: 'dash_piso2',
                 from: 'dash_piso2_A',
@@ -516,7 +502,6 @@ console.time('Total Load Time');
               color: 'black'
             });
               
-            // Nodes extras
             nodesArray.push({
                 id: 'dash_piso3_A',
                 label: '',
@@ -535,7 +520,6 @@ console.time('Total Load Time');
                 fixed: true,
               Tipo: 'aux'
             });
-            // Aresta extra
             edgesArray.push({
                 id: 'dash_piso3',
                 from: 'dash_piso3_A',
@@ -543,7 +527,6 @@ console.time('Total Load Time');
               color: 'black'
             });
               
-               // Nodes extras
             nodesArray.push({
                 id: 'dash_piso4_A',
                 label: '',
@@ -562,7 +545,6 @@ console.time('Total Load Time');
                 fixed: true,
               Tipo: 'aux'
             });
-            // Aresta extra
             edgesArray.push({
                 id: 'dash_piso4',
                 from: 'dash_piso4_A',
@@ -570,7 +552,6 @@ console.time('Total Load Time');
               color: 'black'
             });
               
-               // Nodes extras
             nodesArray.push({
                 id: 'dash_piso5_A',
                 label: '',
@@ -589,7 +570,6 @@ console.time('Total Load Time');
                 fixed: true,
               Tipo: 'aux'
             });
-            // Aresta extra
             edgesArray.push({
                 id: 'dash_piso5',
                 from: 'dash_piso5_A',
@@ -615,7 +595,6 @@ console.time('Total Load Time');
                 fixed: true,
               Tipo: 'aux'
             });
-            // Aresta extra
             edgesArray.push({
                 id: 'dash_piso6',
                 from: 'dash_piso6_A',
@@ -641,7 +620,6 @@ console.time('Total Load Time');
                 fixed: true,
               Tipo: 'aux'
             });
-            // Aresta extra
             edgesArray.push({
                 id: 'dash_piso7',
                 from: 'dash_piso7_A',
@@ -667,7 +645,6 @@ console.time('Total Load Time');
                 fixed: true,
               Tipo: 'aux'
             });
-            // Aresta extra
             edgesArray.push({
                 id: 'dash_piso8',
                 from: 'dash_piso8_A',
@@ -693,7 +670,6 @@ console.time('Total Load Time');
                 fixed: true,
               Tipo: 'aux'
             });
-            // Aresta extra
             edgesArray.push({
                 id: 'dash_piso9',
                 from: 'dash_piso9_A',
@@ -776,13 +752,11 @@ console.time('Total Load Time');
                 endSelect.appendChild(optionEnd);
             });
 
-// Limitar a largura das opções do dropdown
 var selectElements = document.querySelectorAll('select');
 selectElements.forEach(function(select) {
     select.style.maxWidth = '150px';
 });
 
-// Parse URL parameters
             var urlParams = new URLSearchParams(window.location.search);
             var fromParam = urlParams.get('from');
             var toParam = urlParams.get('to');
@@ -817,7 +791,6 @@ selectElements.forEach(function(select) {
                 }
             }
 
-      // Construir a lista de adjacência para BFS e DFS
         adjacencyList = {};
 
         nodesArray.forEach(function(node) {
@@ -825,18 +798,16 @@ selectElements.forEach(function(select) {
         });
 
 edgesArray.forEach(function(edge, index) {
-    // Ensure both nodes exist in the adjacency list
     if (!adjacencyList[edge.from]) {
         console.warn('Edge from-node not found in adjacencyList:', edge.from);
         return; // Skip this edge
     }
     if (!adjacencyList[edge.to]) {
         console.warn('Edge to-node not found in adjacencyList:', edge.to);
-        return; // Skip this edge
+        return;
     }
 
-    // Include the distance as the weight
-    var distance = edge.distance || 1; // Default to 1 if undefined
+    var distance = edge.distance || 1;
 
     adjacencyList[edge.from].push({ node: edge.to, edgeId: edge.id, weight: distance });
     adjacencyList[edge.to].push({ node: edge.from, edgeId: edge.id, weight: distance });
@@ -846,7 +817,6 @@ edgesArray.forEach(function(edge, index) {
                 calculateShortestRoute();
             }
       
-        // Função para exibir imagens no modal
 function handleNodeClick(params) {
     if (params.nodes.length > 0) {
         var nodeId = params.nodes[0];
@@ -859,27 +829,22 @@ function handleNodeClick(params) {
     }
 }
 
-        // Eventos de clique nos nós
 network.on('click', handleNodeClick);
 network.on('doubleClick', handleNodeClick);
 network.on('hold', handleNodeClick);
 
-        // Fechar o modal
 document.getElementById('closeModalBtn').addEventListener('click', function() {
     document.getElementById('modalOverlay').style.display = 'none';
 });
 
-        // Fechar o modal ao clicar fora da imagem
         document.getElementById('modalOverlay').addEventListener('click', function(event) {
             if (event.target == this) {
                 document.getElementById('modalOverlay').style.display = 'none';
             }
         });
       
-        // Extrair pisos únicos para desenhar labels
         var floors = [...new Set(nodesArray.map(node => node.floor))];
 
-        // Desenhar labels dos pisos (opcional)
         network.on("afterDrawing", function (ctx) {
             ctx.save();
             ctx.font = "55px Arial";
@@ -887,7 +852,6 @@ document.getElementById('closeModalBtn').addEventListener('click', function() {
             ctx.textAlign = "left";
 
             floors.forEach(function(floor) {
-                // Encontrar posição média dos nós no piso
                 var nodesOnFloor = nodesArray.filter(node => node.floor === floor);
                 var avgX = nodesOnFloor.reduce((sum, node) => sum + node.x, 0) / nodesOnFloor.length;
                 var avgY = nodesOnFloor.reduce((sum, node) => sum + node.y, 0) / nodesOnFloor.length;
@@ -910,7 +874,6 @@ document.getElementById('closeModalBtn').addEventListener('click', function() {
     var previous = {};
     var queue = new FastPriorityQueue((a, b) => a.distance < b.distance);
 
-    // Initialize distances
     data.nodes.forEach(function(node) {
         distances[node.id] = Infinity;
     });
@@ -923,7 +886,6 @@ document.getElementById('closeModalBtn').addEventListener('click', function() {
         var currentNodeId = current.id;
 
         if (currentNodeId === goalNodeId) {
-            // Reconstruct path
             var path = [];
             var node = goalNodeId;
 
@@ -951,7 +913,6 @@ document.getElementById('closeModalBtn').addEventListener('click', function() {
         }
     }
 
-    // No path found
     return null;
 }
 
@@ -972,29 +933,25 @@ function calculateShortestRoute() {
 
     var startTime = performance.now();
 
-    // **Create the worker instance**
     var worker = new Worker('shortestRouteWorker.js');
 
-    // **Set up the error handler**
     worker.onerror = function(error) {
         hideLoading();
         console.error('Worker error:', error);
         alert('An error occurred in the worker: ' + error.message);
     };
 
-    // **Send data to the worker**
     worker.postMessage({
         startNodeId: fromId,
         goalNodeId: toId,
         adjacencyList: adjacencyList
     });
 
-    // **Set up the message handler**
     worker.onmessage = function(e) {
         hideLoading();
 
         if (e.data.error) {
-            alert(e.data.error); // Replace with your preferred error handling
+            alert(e.data.error);
             return;
         }
 
@@ -1003,7 +960,6 @@ function calculateShortestRoute() {
         resetEdgeColors();
 
         requestAnimationFrame(function() {
-            // Batch edge updates
             var edgeUpdates = [];
 
             for (var i = 0; i < path.length - 1; i++) {
@@ -1024,7 +980,6 @@ function calculateShortestRoute() {
 
             data.edges.update(edgeUpdates);
 
-            // Focus on the path
             network.fit({
                 nodes: path,
                 animation: {
@@ -1033,21 +988,17 @@ function calculateShortestRoute() {
                 },
             });
 
-            // Trigger confetti animation
             confetti({
                 particleCount: 150,
                 spread: 70,
                 origin: { y: 0.6 }
             });
 
-            // **Terminate the worker**
             worker.terminate();
           
-          // After worker.terminate();
 var fromText = startSelect.options[startSelect.selectedIndex].text;
 var toText = endSelect.options[endSelect.selectedIndex].text;
 
-// Submit data to Google Form
 submitToGoogleForm(fromText, toText, 'short');
 
         });
@@ -1066,7 +1017,6 @@ submitToGoogleForm(fromText, toText, 'short');
         var currentNode = queue.shift();
 
         if (currentNode === goalNodeId) {
-            // Reconstruct path
             var path = [];
             var node = goalNodeId;
 
@@ -1091,17 +1041,15 @@ submitToGoogleForm(fromText, toText, 'short');
         }
     }
 
-    // No path found
     return null;
 }
 
    
 function aStarSearch(startNodeId, goalNodeId) {
-    // Open and closed sets
+
     var openSet = new MinPriorityQueue({ priority: (node) => node.fScore });
     var closedSet = new Set();
 
-    // Initialize scores
     var gScore = {};
     var fScore = {};
 
@@ -1115,7 +1063,6 @@ function aStarSearch(startNodeId, goalNodeId) {
         var currentNode = openSet.dequeue().element;
 
         if (currentNode.id === goalNodeId) {
-            // Reconstruct path
             return reconstructPath(cameFrom, currentNode.id);
         }
 
@@ -1141,11 +1088,9 @@ function aStarSearch(startNodeId, goalNodeId) {
         }
     }
 
-    // No path found
     return null;
 }
 
-// Simple Priority Queue for use in the worker
 class PriorityQueue {
     constructor(comparator = (a, b) => a > b) {
         this._heap = [];
@@ -1217,8 +1162,6 @@ function heuristicCostEstimate(nodeId, goalNodeId) {
 }
 
 function distanceBetween(nodeId1, nodeId2) {
-    // For unweighted graphs, distance between adjacent nodes is 1
-    // If you have weights (e.g., actual distances), calculate accordingly
     return 1;
 }
 
@@ -1245,7 +1188,6 @@ function calculateTouristRoute() {
         alert('An error occurred in the worker: ' + error.message);
     };
 
-    // Get all node IDs
     var nodeIds = Object.keys(adjacencyList);
 
     worker.postMessage({
@@ -1268,7 +1210,6 @@ function calculateTouristRoute() {
         resetEdgeColors();
 
         requestAnimationFrame(function() {
-            // Batch edge updates
             var edgeUpdates = [];
 
             for (var i = 0; i < path.length - 1; i++) {
@@ -1289,7 +1230,6 @@ function calculateTouristRoute() {
 
             data.edges.update(edgeUpdates);
 
-            // Focus on the path
             network.fit({
                 nodes: path,
                 animation: {
@@ -1298,20 +1238,18 @@ function calculateTouristRoute() {
                 },
             });
 
-            // Trigger confetti animation
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
+           confetti({
+    particleCount: 150,
+    spread: 70,
+    origin: { y: 0.6 },
+    colors: ['#00FF00', '#32CD32', '#98FB98', '#7FFF00', '#00FA9A']
+});
 
             worker.terminate();
           
-          // After worker.terminate();
 var fromText = startSelect.options[startSelect.selectedIndex].text;
 var toText = endSelect.options[endSelect.selectedIndex].text;
 
-// Submit data to Google Form
 submitToGoogleForm(fromText, toText, 'tourist');
 
         });
@@ -1320,8 +1258,8 @@ submitToGoogleForm(fromText, toText, 'tourist');
 
 
 function copyCurrentRoute() {
-            var fromId = startSelect.value; // Node ID
-            var toId = endSelect.value;     // Node ID
+            var fromId = startSelect.value;
+            var toId = endSelect.value;
 
             var fromNodeName = nodeIdToNameMapping[fromId];
             var toNodeName = nodeIdToNameMapping[toId];
@@ -1355,10 +1293,8 @@ function hideLoading() {
    function submitToGoogleForm(fromText, toText, type) {
     const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSdaYpA-Ao2GDRYZZswwpzAHj6YyfezSBuZgcER8leb78QtakQ/formResponse';
 
-    // Prepare form data using URLSearchParams
     const formData = new URLSearchParams();
 
-    // Append all entry IDs with data
     formData.append('entry.1817943713', deviceId); // Device ID
     if (fromText) {
         formData.append('entry.7686362', fromText); // From text
@@ -1368,7 +1304,6 @@ function hideLoading() {
     }
     formData.append('entry.614632778', type); // Type
 
-    // Send the data to Google Form
     fetch(formUrl, {
         method: 'POST',
         mode: 'no-cors',
@@ -1386,13 +1321,11 @@ function hideLoading() {
 }
 
    function submitAndre() {
-    // Submit data to Google Form
     submitToGoogleForm(null, null, 'Andre');
 
-    // Open the link in a new tab
     window.open('https://www.linkedin.com/in/andrefrsilva/', '_blank');
 
-    return false; // Prevent default link behavior
+    return false;
 }
 
    
