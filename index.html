@@ -238,7 +238,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.23</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.24</a>
               </center>
             </div>
         </div>
@@ -438,7 +438,7 @@ console.time('Total Load Time');
             nodesArray.push({
                 id: 'dash_piso1_A',
                 label: '',
-                x: 500,
+                x: -400,
                 y: 900,
                 shape: 'text',
                 fixed: true,
@@ -447,7 +447,7 @@ console.time('Total Load Time');
             nodesArray.push({
                 id: 'dash_piso1_B',
                 label: '',
-                x: 7000,
+                x: 10000,
                 y: 900,
                 shape: 'text',
                 fixed: true,
@@ -465,8 +465,8 @@ console.time('Total Load Time');
             nodesArray.push({
                 id: 'dash_piso2_A',
                 label: '',
-                x: 500,
-                y: -1080,
+                x: -400,
+                y: -1100,
                 shape: 'text',
                 fixed: true,
               Tipo: 'aux'
@@ -474,8 +474,8 @@ console.time('Total Load Time');
             nodesArray.push({
                 id: 'dash_piso2_B',
                 label: '',
-                x: 7000,
-                y: -1080,
+                x: 10000,
+                y: -1100,
                 shape: 'text',
                 fixed: true,
               Tipo: 'aux'
@@ -805,7 +805,7 @@ function calculateShortestRoute() {
                 })[0];
 
                 if (edgeId !== undefined) {
-                    edgeUpdates.push({ id: edgeId, color: { color: '#FF0000' }, width: 14 });
+                    edgeUpdates.push({ id: edgeId, color: { color: '#FF0000' }, width: 8 });
                 }
             }
 
