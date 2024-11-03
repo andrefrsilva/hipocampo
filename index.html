@@ -238,7 +238,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.30</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.31</a>
               </center>
             </div>
         </div>
@@ -566,6 +566,84 @@ console.time('Total Load Time');
                 id: 'dash_piso5',
                 from: 'dash_piso5_A',
                 to: 'dash_piso5_B',
+              color: 'black'
+            });
+              
+               nodesArray.push({
+                id: 'dash_piso6_A',
+                label: '',
+                x: -4000,
+                y: -8700,
+                shape: 'text',
+                fixed: true,
+              Tipo: 'aux'
+            });
+            nodesArray.push({
+                id: 'dash_piso6_B',
+                label: '',
+                x: 11000,
+                y: -8700,
+                shape: 'text',
+                fixed: true,
+              Tipo: 'aux'
+            });
+            // Aresta extra
+            edgesArray.push({
+                id: 'dash_piso6',
+                from: 'dash_piso6_A',
+                to: 'dash_piso6_B',
+              color: 'black'
+            });
+              
+              nodesArray.push({
+                id: 'dash_piso7_A',
+                label: '',
+                x: -4000,
+                y: -10600,
+                shape: 'text',
+                fixed: true,
+              Tipo: 'aux'
+            });
+            nodesArray.push({
+                id: 'dash_piso7_B',
+                label: '',
+                x: 11000,
+                y: -10600,
+                shape: 'text',
+                fixed: true,
+              Tipo: 'aux'
+            });
+            // Aresta extra
+            edgesArray.push({
+                id: 'dash_piso7',
+                from: 'dash_piso7_A',
+                to: 'dash_piso7_B',
+              color: 'black'
+            });
+              
+               nodesArray.push({
+                id: 'dash_piso8_A',
+                label: '',
+                x: -4000,
+                y: -12500,
+                shape: 'text',
+                fixed: true,
+              Tipo: 'aux'
+            });
+            nodesArray.push({
+                id: 'dash_piso8_B',
+                label: '',
+                x: 11000,
+                y: -12500,
+                shape: 'text',
+                fixed: true,
+              Tipo: 'aux'
+            });
+            // Aresta extra
+            edgesArray.push({
+                id: 'dash_piso8',
+                from: 'dash_piso8_A',
+                to: 'dash_piso8_B',
               color: 'black'
             });
 
