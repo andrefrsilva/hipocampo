@@ -238,7 +238,7 @@ a:hover {
         <div class="row">
             <div class="col-12">
               <center>
-              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.18</a>
+              <a href="https://hipocampo.pt" style="font-size: 24px;">HIPOCAMPO v0.40</a>
               </center>
             </div>
         </div>
@@ -435,6 +435,32 @@ console.time('Total Load Time');
 
             // **Adicionar nós e arestas extras hardcoded**
             // Nodes extras
+              nodesArray.push({
+                id: 'dash_piso0_A',
+                label: '',
+                x: -4000,
+                y: -1000,
+                shape: 'text',
+                fixed: true,
+              Tipo: 'aux'
+            });
+            nodesArray.push({
+                id: 'dash_piso0_B',
+                label: '',
+                x: 11000,
+                y: -1000,
+                shape: 'text',
+                fixed: true,
+              Tipo: 'aux'
+            });
+            // Aresta extra
+            edgesArray.push({
+                id: 'dash_piso0',
+                from: 'dash_piso0_A',
+                to: 'dash_piso0_B',
+              color: 'black'
+            });
+              
             nodesArray.push({
                 id: 'dash_piso1_A',
                 label: '',
