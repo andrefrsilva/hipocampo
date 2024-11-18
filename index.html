@@ -226,6 +226,78 @@ a:hover {
     height: auto;
 }
       
+/* Image Modal */
+        #modalOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 2000;
+            overflow: auto;
+        }
+        #modalContent {
+            position: relative;
+            margin: auto;
+            top: 50px;
+            width: 80%;
+            max-width: 800px;
+        }
+        #modalImage {
+            width: 100%;
+            height: auto;
+        }
+        #closeModalBtn {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: #fff;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+        }
+        /* Search Modal */
+        #searchModal {
+            display: none; /* Modal starts closed */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 3000;
+            overflow: auto;
+        }
+        #searchModal .modal-content {
+            position: relative;
+            margin: 5% auto;
+            padding: 20px;
+            background-color: white;
+            width: 90%;
+            height: 90%; /* Occupy 90% of the window height */
+            max-width: 500px;
+            border-radius: 8px;
+        }
+        #searchModal .close-modal-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        #searchModal .list-group {
+            max-height: 75%; /* Adjust to ensure the list fits well */
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+      
     </style>
 </head>
 <body>
@@ -244,12 +316,21 @@ a:hover {
         <div class="row">
             <div class="col-12">
                 <div class="controls-group">
-                    <!-- De: [dropdown] Para: [dropdown] -->
+                  <!-- De: [dropdown] Para: [dropdown] -->
                     <div class="de-para-group">
                         <label for="startPoint">De:</label>
                         <select id="startPoint" class="form-control mr-3"></select>
+
                         <label for="endPoint">Para:</label>
                         <select id="endPoint" class="form-control"></select>
+                    </div>
+                    <!-- Search Modal -->
+                    <div id="searchModal">
+                        <div class="modal-content">
+                            <button class="close-modal-btn" onclick="closeSearchModal()">&times;</button>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Escrever..." oninput="filterSearchResults()">
+                            <ul id="searchResults" class="list-group"></ul>
+                        </div>
                     </div>
                     <!-- Pelo Caminho: [buttons] -->
                     <div class="d-flex align-items-center path-controls">
@@ -298,6 +379,55 @@ Em alguns locais pode pressionar para ver a foto.<br>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
  <script type="text/javascript">
+let currentDropdown;
+
+    // Function to open the modal
+    function openSearchModal(dropdownType) {
+        currentDropdown = dropdownType;
+        document.getElementById('searchModal').style.display = 'block';
+        document.getElementById('searchInput').value = '';
+        filterSearchResults(); // Show all options initially
+    }
+
+    // Function to close the modal
+    function closeSearchModal() {
+        document.getElementById('searchModal').style.display = 'none';
+    }
+
+    // Prevent default dropdown behavior and open modal instead
+    document.getElementById('startPoint').addEventListener('mousedown', function(event) {
+        event.preventDefault(); // Prevent the native dropdown
+        openSearchModal('start');
+    });
+
+    document.getElementById('endPoint').addEventListener('mousedown', function(event) {
+        event.preventDefault(); // Prevent the native dropdown
+        openSearchModal('end');
+    });
+
+    // Function to filter search results
+    function filterSearchResults() {
+        const searchValue = document.getElementById('searchInput').value.toLowerCase();
+        const resultsContainer = document.getElementById('searchResults');
+        resultsContainer.innerHTML = '';
+
+        const dropdown = currentDropdown === 'start' ? startSelect : endSelect;
+        const options = Array.from(dropdown.options);
+
+        options.forEach(option => {
+            if (option.text.toLowerCase().includes(searchValue)) {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.textContent = option.text;
+                li.onclick = () => {
+                    dropdown.value = option.value;
+                    closeSearchModal();
+                };
+                resultsContainer.appendChild(li);
+            }
+        });
+    }
+   
    var deviceId;
 if (localStorage.getItem('deviceId')) {
     deviceId = localStorage.getItem('deviceId');
